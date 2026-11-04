@@ -13,6 +13,7 @@ import { HypothesisCard } from './components/HypothesisCard';
 import { ComparisonLab } from './components/ComparisonLab';
 import { PaperTradingPanel } from './components/PaperTradingPanel';
 import { MemoryExplorer } from './components/MemoryExplorer';
+import { CompellingLoop } from './components/CompellingLoop';
 import { UploadModal } from './components/UploadModal';
 import { 
   TrendingUp, 
@@ -25,7 +26,7 @@ import {
 } from 'lucide-react';
 
 export const App: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'terminal' | 'experiment' | 'portfolio' | 'memory'>('terminal');
+  const [activeTab, setActiveTab] = useState<'loop' | 'terminal' | 'experiment' | 'portfolio' | 'memory'>('loop');
   const [health, setHealth] = useState<SystemHealth | null>(null);
   const [instruments, setInstruments] = useState<InstrumentMetadata[]>([]);
   const [selectedSymbol, setSelectedSymbol] = useState<string>('NIFTY_50');
@@ -138,6 +139,40 @@ export const App: React.FC = () => {
 
       {/* Main Container */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 lg:p-6 space-y-5">
+        
+        {/* Compelling AI Loop Tab */}
+        {activeTab === 'loop' && (
+          <div className="flex flex-col space-y-4">
+            {/* Instrument Bar */}
+            <div className="flex items-center space-x-2 overflow-x-auto pb-1 scrollbar-none">
+              <span className="text-xs font-mono text-slate-500 uppercase tracking-wider shrink-0 mr-1">
+                Select Instrument:
+              </span>
+              {instruments.map((inst) => {
+                const isSelected = inst.id === selectedSymbol;
+                return (
+                  <button
+                    key={inst.id}
+                    onClick={() => setSelectedSymbol(inst.id)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-mono font-medium transition flex items-center space-x-2 shrink-0 ${
+                      isSelected
+                        ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
+                        : 'bg-slate-900/80 text-slate-400 hover:text-white border border-slate-800 hover:border-slate-700'
+                    }`}
+                  >
+                    <span>{inst.symbol}</span>
+                    <span className="text-[10px] opacity-75">₹{inst.latest_close.toFixed(1)}</span>
+                    {inst.is_synthetic && (
+                      <span className="text-[9px] px-1 rounded bg-amber-500/20 text-amber-300">DEMO</span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+
+            <CompellingLoop currentSymbol={selectedSymbol} />
+          </div>
+        )}
         
         {/* Terminal View */}
         {activeTab === 'terminal' && (

@@ -1,3 +1,5 @@
+export type MarketDirection = 'BULLISH' | 'BEARISH' | 'NEUTRAL';
+
 export interface InstrumentMetadata {
   id: string;
   symbol: string;
@@ -59,8 +61,6 @@ export interface MarketSnapshot {
   };
 }
 
-export type MarketDirection = 'BULLISH' | 'BEARISH' | 'NEUTRAL';
-
 export interface TradingHypothesis {
   instrument: string;
   market_direction: MarketDirection;
@@ -75,6 +75,83 @@ export interface TradingHypothesis {
   memory_applied: boolean;
   recalled_lessons?: string[];
   created_at?: string;
+}
+
+export interface DirectionPrediction {
+  direction: string;
+  confidence: number;
+  probabilities: Record<string, number>;
+  top_features: Array<{ feature: string; importance: number; current_value: number }>;
+}
+
+export interface VolatilityPrediction {
+  predicted_volatility_pct: number;
+  volatility_regime: string;
+  atr_forecast: number;
+}
+
+export interface SentimentPrediction {
+  sentiment_score: number;
+  sentiment_label: string;
+  buying_pressure_pct: number;
+}
+
+export interface MLAnalysisResult {
+  instrument: string;
+  timestamp: string;
+  current_price: number;
+  direction: DirectionPrediction;
+  volatility: VolatilityPrediction;
+  sentiment: SentimentPrediction;
+  model_metadata: Record<string, any>;
+}
+
+export interface CompellingLoopResponse {
+  loop_id: string;
+  instrument: string;
+  timestamp: string;
+  step1_market_data: {
+    status: string;
+    instrument: string;
+    data_source: string;
+    is_synthetic: boolean;
+    timestamp: string;
+    current_price: number;
+    change_pct: number;
+    total_bars_available: number;
+    indicators: Record<string, any>;
+  };
+  step2_ml_analysis: MLAnalysisResult;
+  step3_hindsight_recall: {
+    status: string;
+    hindsight_connected: boolean;
+    query_used: string;
+    recalled_items_count: number;
+    recalled_lessons: string[];
+  };
+  step4_groq_explanation: TradingHypothesis;
+  step5_paper_trading_result: {
+    status: string;
+    order_id: string;
+    side: string;
+    quantity: number;
+    entry_price: number;
+    exit_price: number;
+    gross_return_pct: number;
+    net_realized_pnl: number;
+    fees_and_slippage: number;
+    verdict: string;
+    portfolio_equity: number;
+  };
+  step6_hindsight_lesson_reply: {
+    status: string;
+    learned_lesson: string;
+    hindsight_reply: string;
+    memory_bank: string;
+    timestamp: string;
+  };
+  summary_verdict: string;
+  execution_time_seconds: number;
 }
 
 export interface SystemHealth {

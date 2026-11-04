@@ -117,6 +117,18 @@ export const api = {
     return res.json();
   },
 
+  // Compelling Loop Workflow
+  runCompellingLoop: async (instrument: string = "NIFTY_50"): Promise<any> => {
+    const res = await fetch(`${API_BASE}/loop/run?instrument=${instrument}`, {
+      method: 'POST'
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.detail || 'Loop execution failed');
+    }
+    return res.json();
+  },
+
   // Memory
   getMemoryStatus: async (): Promise<any> => {
     const res = await fetch(`${API_BASE}/memory/status`);

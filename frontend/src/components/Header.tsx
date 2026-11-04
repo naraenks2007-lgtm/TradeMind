@@ -14,8 +14,8 @@ import { SystemHealth } from '../types';
 interface HeaderProps {
   health: SystemHealth | null;
   onOpenUpload: () => void;
-  activeTab: 'terminal' | 'experiment' | 'portfolio' | 'memory';
-  setActiveTab: (tab: 'terminal' | 'experiment' | 'portfolio' | 'memory') => void;
+  activeTab: 'terminal' | 'loop' | 'experiment' | 'portfolio' | 'memory';
+  setActiveTab: (tab: 'terminal' | 'loop' | 'experiment' | 'portfolio' | 'memory') => void;
   onRefresh: () => void;
   loading: boolean;
 }
@@ -56,6 +56,17 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Navigation Tabs */}
         <nav className="flex items-center space-x-1 bg-slate-900/90 p-1 rounded-xl border border-slate-800/80">
+          <button
+            onClick={() => setActiveTab('loop')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 ${
+              activeTab === 'loop'
+                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-600/30 font-bold'
+                : 'text-blue-400 hover:text-white hover:bg-slate-800/50'
+            }`}
+          >
+            <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span>
+            <span>Compelling AI Loop</span>
+          </button>
           <button
             onClick={() => setActiveTab('terminal')}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
