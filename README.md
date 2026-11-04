@@ -1,0 +1,153 @@
+# TradeMind AI – Intelligent Market Hypothesis & Long-Term Memory Engine
+
+TradeMind is a quantitative trading intelligence platform built for Indian equities (NIFTY 50, BANK NIFTY, RELIANCE, TCS, INFY). It pairs deterministic Python-calculated technical indicators with **Groq LLM** for hypothesis generation and **Vectorize Hindsight** for experiential long-term memory.
+
+---
+
+## 1. Band AI Development Workflow
+
+TradeMind was coordinated using **Band Desktop** across five specialized development agents:
+
+- **Architect Agent (`naraenks2007/architect-agent`)**: Designed system architecture, data schemas, and memory loops.
+- **Backend Agent (`naraenks2007/backend-agent`)**: Implemented FastAPI backend, Groq integration (`llm_service.py`), and Hindsight SDK client (`hindsight_service.py`).
+- **Frontend Agent (`naraenks2007/frontend-agent`)**: Built React 18 dashboard, candlestick charting, indicator overlays, and comparison lab.
+- **Data Agent (`naraenks2007/data-agent`)**: Built automated historical market data ingestion (`yfinance`), CSV validation, and indicator math.
+- **Reviewer Agent (`naraenks2007/reviewer-agent`)**: Conducted end-to-end verification, eliminated look-ahead bias, and audited security.
+
+> **Note on Band AI:** Band Desktop is used strictly as a development orchestration tool. It is not bundled or embedded into the production TradeMind application. Detailed logs can be found in [`docs/BAND_DEVELOPMENT_LOG.md`](docs/BAND_DEVELOPMENT_LOG.md).
+
+---
+
+## 2. Market Data Architecture
+
+TradeMind does not use empty datasets or arbitrary hardcoded chart values. Real 1-year historical daily OHLCV datasets are provided in `data/historical/`:
+
+| Instrument | Symbol / Ticker | Records | Date Range | Data Source |
+|------------|-----------------|---------|------------|-------------|
+| **NIFTY 50** | `^NSEI` | 246 rows | 2025-11-04 to 2026-11-03 | Historical (yfinance demonstration feed) |
+| **BANK NIFTY** | `^NSEBANK` | 246 rows | 2025-11-04 to 2026-11-03 | Historical (yfinance demonstration feed) |
+| **RELIANCE** | `RELIANCE.NS` | 247 rows | 2025-11-04 to 2026-11-03 | Historical (yfinance demonstration feed) |
+| **TCS** | `TCS.NS` | 247 rows | 2025-11-04 to 2026-11-03 | Historical (yfinance demonstration feed) |
+| **INFY** | `INFY.NS` | 247 rows | 2025-11-04 to 2026-11-03 | Historical (yfinance demonstration feed) |
+| **DEMO NIFTY** | `DEMO_NIFTY_FALLBACK` | 120 rows | 2026-05-22 to 2026-11-05 | Synthetic Demonstration Fallback (Offline) |
+
+### Scripts:
+- **Data Downloader:** `python scripts/download_market_data.py`
+- **Data Validator:** `python scripts/validate_market_data.py`
+- **Custom Uploads:** Users can upload arbitrary OHLCV CSV files through the web dashboard or `POST /api/market/upload`.
+
+---
+
+## 3. Deterministic Indicators & Groq LLM Integration
+
+TradeMind enforces a strict anti-hallucination rule: **the LLM is never allowed to invent technical indicator numbers**.
+All indicators are computed in Python via `ta` and pandas:
+- **RSI (14)**
+- **EMAs (20, 50, 200)**
+- **MACD (12, 26, 9)** line, signal, and histogram
+- **Bollinger Bands (20, 2 std dev)**
+- **ATR (14)** and Volatility state
+
+### Groq LLM Configuration (`backend/services/llm_service.py`)
+- Official SDK: `from groq import Groq`
+- Model: `openai/gpt-oss-120b` (configurable in `.env`)
+- Structured JSON output validated using **Pydantic**:
+  - `instrument`
+  - `market_direction` (`BULLISH` | `BEARISH` | `NEUTRAL`)
+  - `hypothesis`
+  - `supporting_evidence`
+  - `confidence` (0.0 to 1.0)
+  - `entry_assumption`
+  - `stop_loss_assumption`
+  - `target_assumption`
+  - `invalidation_conditions`
+  - `risk_explanation`
+
+---
+
+## 4. Vectorize Hindsight – Experiential Long-Term Memory
+
+Official SDK integration (`hindsight-client` v1.2.0) implementing the 3 core memory verbs:
+1. **`retain`**: Ingests market conditions, technical snapshots, hypotheses, and paper-trade outcomes into the long-term memory bank.
+2. **`recall`**: Executes sub-second parallel hybrid search (semantic + BM25 + entity graph) to retrieve relevant past experiences when evaluating new setups.
+3. **`reflect`**: Performs analytical reasoning across accumulated trade outcomes to synthesize lessons before executing new positions.
+
+> **Honest Degradation:** If `HINDSIGHT_API_KEY` is not configured, TradeMind honestly displays `Offline: HINDSIGHT_API_KEY not configured in .env` and operates in deterministic mode. It never mocks or simulates fake Hindsight memory responses.
+
+---
+
+## 5. Memory vs. No-Memory Experiment Lab
+
+The Comparison Lab runs identical historical market scenarios through two agents without look-ahead bias:
+- **Agent A (No Memory):** Standard rule-based technical setup evaluation.
+- **Agent B (With Hindsight Memory):** Evaluates identical technicals but incorporates recalled historical lessons (e.g., avoiding overbought RSI traps or low-volatility squeezes).
+
+### Benchmark Comparison Metrics:
+- **Directional Accuracy (%)**
+- **Win Rate (%)**
+- **Simulated Cumulative Return (%)**
+- **Repeated Known Mistakes Count**
+
+---
+
+## 6. Paper Trading Engine
+
+Simulated trading environment with **₹1,00,000 initial capital**:
+- Virtual Buy and Sell orders with quantity, entry, stop-loss, and target.
+- Live mark-to-market unrealized and realized P&L calculation.
+- Realistic execution costs: **0.03% brokerage & taxes** and **0.02% slippage model**.
+- Automatically reflects trade outcomes into Hindsight memory upon position close.
+- Account reset button to restore balance to ₹1,00,000.
+
+---
+
+## 7. Setup & Installation
+
+### Prerequisites
+- Python 3.10+
+- Node.js 18+ and npm
+
+### 1. Environment Configuration
+Copy the template and configure your keys:
+```bash
+cp .env.example .env
+```
+Edit `.env`:
+```ini
+GROQ_API_KEY=gsk_your_groq_api_key_here
+GROQ_MODEL=openai/gpt-oss-120b
+HINDSIGHT_API_KEY=your_hindsight_api_key_here
+HINDSIGHT_BASE_URL=https://api.hindsight.vectorize.io
+PORT=8000
+HOST=0.0.0.0
+```
+
+### 2. Backend Installation & Verification
+```bash
+# Install Python dependencies
+pip install -r requirements.txt
+
+# Download / Refresh market data
+python scripts/download_market_data.py
+
+# Validate all market data files
+python scripts/validate_market_data.py
+
+# Run end-to-end backend test suite
+python scripts/test_backend.py
+```
+
+### 3. Frontend Build & Launch
+```bash
+# Build frontend
+cd frontend
+npm install
+npm run build
+cd ..
+
+# Start application server (serves API and built frontend on port 8000)
+python backend/main.py
+```
+Open **`http://localhost:8000`** in your browser.
+
+*(For frontend development with Vite hot reload: run `npm run dev` in `frontend/` on port 3000).*

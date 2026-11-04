@@ -1,0 +1,16 @@
+# Python cache files
+**/__pycache__/
+*.py[cod]
+*$py.class
+
+# Python virtual environments (Crucial to avoid uploading thousands of library files)
+.venv/
+venv/
+ENV/
+env/
+
+# Environment configurations and secret tokens (Protects your private API keys)
+.env
+*.env
+.env.example
+
