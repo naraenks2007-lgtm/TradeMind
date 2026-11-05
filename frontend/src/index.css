@@ -159,3 +159,62 @@ code, .font-mono {
 .tm-light-theme [class*="bg-slate-900"] { background-color: #ffffff; }
 .tm-light-theme .tm-chat-shell .text-slate-200 { color: #334155; }
 .tm-light-theme .tm-chat-shell .text-slate-300 { color: #475569; }
+
+
+/* Application-wide day theme. The root class is set by App.tsx and applies to
+   every dashboard tab, modal, header, chart card and the chat workspace. */
+.tm-app { min-height: 100vh; transition: background-color .2s ease, color .2s ease; }
+.tm-app.tm-theme-light {
+  color: #172033 !important;
+  background: #f4f7fb !important;
+}
+.tm-app.tm-theme-light header,
+.tm-app.tm-theme-light footer,
+.tm-app.tm-theme-light [class*="bg-[#0F141F]"],
+.tm-app.tm-theme-light [class*="bg-[#0B0E14]"],
+.tm-app.tm-theme-light [class*="bg-[#080d18]"],
+.tm-app.tm-theme-light [class*="bg-[#0b1120]"],
+.tm-app.tm-theme-light [class*="bg-[#0c1322]"] {
+  background-color: #ffffff !important;
+  background-image: none;
+  border-color: #dbe3ee !important;
+}
+.tm-app.tm-theme-light [class*="bg-slate-950"],
+.tm-app.tm-theme-light [class*="bg-slate-900"],
+.tm-app.tm-theme-light [class*="bg-slate-800"],
+.tm-app.tm-theme-light [class*="bg-slate-700"] {
+  background-color: #eaf0f7 !important;
+  border-color: #d5deea !important;
+}
+.tm-app.tm-theme-light [class*="text-white"]:not([class*="bg-blue-"]):not([class*="bg-cyan-"]):not([class*="bg-indigo-"]):not([class*="bg-emerald-"]):not([class*="bg-purple-"]):not([class*="bg-rose-"]) {
+  color: #172033 !important;
+}
+.tm-app.tm-theme-light [class*="text-slate-100"],
+.tm-app.tm-theme-light [class*="text-slate-200"],
+.tm-app.tm-theme-light [class*="text-slate-300"] { color: #334155 !important; }
+.tm-app.tm-theme-light [class*="text-slate-400"],
+.tm-app.tm-theme-light [class*="text-slate-500"],
+.tm-app.tm-theme-light [class*="text-slate-600"] { color: #64748b !important; }
+.tm-app.tm-theme-light [class*="border-slate-800"],
+.tm-app.tm-theme-light [class*="border-slate-700"],
+.tm-app.tm-theme-light [class*="border-slate-600"] { border-color: #d5deea !important; }
+.tm-app.tm-theme-light input,
+.tm-app.tm-theme-light textarea,
+.tm-app.tm-theme-light select {
+  color: #172033;
+  background-color: #ffffff;
+  border-color: #cbd5e1;
+}
+.tm-app.tm-theme-light input::placeholder,
+.tm-app.tm-theme-light textarea::placeholder { color: #94a3b8; }
+.tm-app.tm-theme-light ::-webkit-scrollbar-track { background: #edf2f7; }
+.tm-app.tm-theme-light ::-webkit-scrollbar-thumb { background: #cbd5e1; }
+.tm-app.tm-theme-light .tm-chat-shell {
+  color: #172033;
+  background: #f4f7fb;
+  border-color: #d8e0eb;
+}
+.tm-app.tm-theme-light .tm-chat-sidebar { background: #edf2f8; border-color: #d8e0eb; }
+.tm-app.tm-theme-light .tm-chat-shell header { background: rgba(255,255,255,.94); }
+.tm-app.tm-theme-light .tm-chat-shell [class*="bg-slate-900"],
+.tm-app.tm-theme-light .tm-chat-shell [class*="bg-slate-800"] { background-color: #e8eef6 !important; }
