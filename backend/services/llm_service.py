@@ -52,7 +52,8 @@ class LLMService:
         snapshot: MarketSnapshot,
         include_memory: bool = True,
         user_notes: Optional[str] = None,
-        ml_analysis: Optional[MLAnalysisResult] = None
+        ml_analysis: Optional[MLAnalysisResult] = None,
+        session_id: Optional[str] = None
     ) -> TradingHypothesis:
         if not self.client:
             raise RuntimeError("Groq LLM Client is not initialized. Please set GROQ_API_KEY.")
@@ -71,9 +72,20 @@ class LLMService:
                 f"RSI={indicators.rsi}, MACD={indicators.macd}, Volatility={indicators.volatility_summary}. "
                 f"Past mistakes, lessons learned, and high probability setups."
             )
-            recalled_items = hindsight_service.recall_memories(query=query, limit=4)
+            recalled_items = hindsight_service.recall_memories(query=query, tags=[snapshot.symbol], limit=4)
             if recalled_items:
                 recalled_lessons = [item.content for item in recalled_items]
+            if session_id:
+                personal_items = hindsight_service.recall_memories(
+                    query=query,
+                    tags=["trademind_session_" + session_id],
+                    limit=4
+                )
+                recalled_lessons.extend(
+                    item.content for item in personal_items
+                    if item.content not in recalled_lessons
+                )
+                recalled_lessons = recalled_lessons[:6]
                 memory_context_str = "RECALLED PREVIOUS EXPERIENCES & LESSONS (FROM HINDSIGHT):\n" + "\n".join(
                     [f"- {l}" for l in recalled_lessons]
                 )
