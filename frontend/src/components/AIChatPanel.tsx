@@ -134,10 +134,12 @@ export const AIChatPanel: React.FC<AIChatPanelProps> = ({
       const remaining = conversations.filter((item) => item.id !== id);
       setConversations(remaining);
       if (activeId === id) {
-        if (remaining.length) await openConversation(remaining[0].id);
-        else {
-          setActiveId(null);
-          setMessages([]);
+        setActiveId(null);
+        setMessages([]);
+        if (remaining.length) {
+          const next = await api.getConversation(remaining[0].id);
+          setActiveId(next.id);
+          setMessages(next.messages || []);
         }
       }
     } catch (err: any) {
