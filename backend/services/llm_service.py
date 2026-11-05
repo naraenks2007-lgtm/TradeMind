@@ -306,11 +306,11 @@ Highlight key support/resistance levels, indicator readings, and risk considerat
             "If a question needs current information you do not have, say so clearly. "
             "Never claim a personal fact was saved unless the memory service confirms it."
         )
-        memory_context = "\\n".join(f"- {item}" for item in recalled_memories) or "No relevant memories."
+        memory_context = "\n".join(f"- {item}" for item in recalled_memories) or "No relevant memories."
         response = self.client.chat.completions.create(
             model=self.model,
             messages=[
-                {"role": "system", "content": system_prompt + "\\nRelevant recalled context:\\n" + memory_context},
+                {"role": "system", "content": system_prompt + "\nRelevant recalled context:\n" + memory_context},
                 {"role": "user", "content": message}
             ],
             temperature=0.4
