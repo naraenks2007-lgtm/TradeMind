@@ -1,6 +1,5 @@
 import re
-from datetime import datetime
-from zoneinfo import ZoneInfo
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 from backend.models.hypothesis import MarketChatResponse
@@ -8,7 +7,7 @@ from backend.services.conversation_store import conversation_store
 from backend.services.hindsight_service import hindsight_service
 
 
-IST = ZoneInfo("Asia/Kolkata")
+IST = timezone(timedelta(hours=5, minutes=30), name="IST")
 SESSION_TAG_PREFIX = "trademind_session_"
 
 
