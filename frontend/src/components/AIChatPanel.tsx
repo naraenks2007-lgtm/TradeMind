@@ -325,7 +325,7 @@ export const AIChatPanel: React.FC<AIChatPanelProps> = ({
                         {message.recalled_memories.map((memory, index) => <p key={index} className="mb-1 text-xs leading-5 text-slate-400">• {memory}</p>)}
                       </div>
                     )}
-                    {message.role === 'assistant' && message.data_source && (
+                    {message.role === 'assistant' && message.data_source && message.data_source !== 'TradeMind AI' && (
                       <p className="mt-1.5 text-[9px] text-slate-600">{message.instrument} · ₹{(message.current_price || 0).toLocaleString('en-IN')} · {message.data_source}</p>
                     )}
                   </div>
