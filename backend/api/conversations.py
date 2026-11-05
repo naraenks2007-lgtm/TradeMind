@@ -89,7 +89,7 @@ def send_message(conversation_id: str, req: ChatMessageRequest, x_trademind_sess
                 snapshot = _get_active_snapshot(req.instrument_id)
                 portfolio = paper_trading_service.get_portfolio_state({snapshot.symbol: snapshot.current_price})
                 headlines = adaptive_learning_service.fetch_and_remember_market_news(snapshot.symbol)
-                news_context = "\\n".join(
+                news_context = "\n".join(
                     f"- {item['title']} (source: {item['source']}; published: {item['published']}; link: {item['link']})"
                     for item in headlines
                 ) or "No fresh public news headlines were available."
@@ -104,7 +104,7 @@ def send_message(conversation_id: str, req: ChatMessageRequest, x_trademind_sess
                 response = llm_service.general_chat(req.message.strip(), session_id=session_id)
 
         if learned_memory:
-            response.answer += "\\n\\n🧠 **Hindsight learned:** " + learned_memory + "\\nI'll use this preference or lesson when relevant in future analysis."
+            response.answer += "\n\n🧠 **Hindsight learned:** " + learned_memory + "\nI'll use this preference or lesson when relevant in future analysis."
         result = conversation_store.append_exchange(
             session_id, conversation_id, req.instrument_id, req.message.strip(), response.answer, response
         )
