@@ -34,7 +34,7 @@ class AdaptiveLearningService:
             "i trade", "i usually enter", "i usually exit", "next time", "from now on", "i want you to",
             "i don't want", "i do not want", "because i entered", "because i exited", "wrong price",
             "price is", "price was", "actual price", "market price", "that price", "not correct",
-            "incorrect price", "your output", "you said", "current price", "the value is"
+            "incorrect price", "your output", "this output", "output is wrong", "this result", "you said", "you gave", "you provided", "not matching", "does not match", "doesn't match", "it shows", "i got", "i am getting", "current price", "the value is"
         )
         return len(message.strip()) >= 8 and any(term in text for term in signals)
 
