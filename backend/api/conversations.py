@@ -12,6 +12,7 @@ from backend.services.paper_trading_service import paper_trading_service
 from backend.models.hypothesis import MarketChatResponse
 from backend.services.chat_intelligence import process_personal_memory, process_greeting, is_market_question
 from backend.services.file_analysis_service import analyze_file
+from backend.services.adaptive_learning_service import adaptive_learning_service
 
 router = APIRouter(prefix="/api/conversations", tags=["Persistent AI Conversations"])
 
@@ -77,6 +78,9 @@ def send_message(conversation_id: str, req: ChatMessageRequest, x_trademind_sess
         raise HTTPException(status_code=404, detail="Conversation not found.")
 
     try:
+        learned_memory = adaptive_learning_service.learn_from_user_reply(
+            req.message.strip(), session_id, req.instrument_id
+        )
         response = process_personal_memory(session_id, req.message.strip())
         if response is None:
             response = process_greeting(req.message.strip())
@@ -84,15 +88,23 @@ def send_message(conversation_id: str, req: ChatMessageRequest, x_trademind_sess
             if is_market_question(req.message):
                 snapshot = _get_active_snapshot(req.instrument_id)
                 portfolio = paper_trading_service.get_portfolio_state({snapshot.symbol: snapshot.current_price})
+                headlines = adaptive_learning_service.fetch_and_remember_market_news(snapshot.symbol)
+                news_context = "\\n".join(
+                    f"- {item['title']} (source: {item['source']}; published: {item['published']}; link: {item['link']})"
+                    for item in headlines
+                ) or "No fresh public news headlines were available."
                 response = llm_service.chat_analysis(
                     message=req.message.strip(),
                     snapshot=snapshot,
                     portfolio=portfolio,
-                    include_memory=req.include_memory
+                    include_memory=req.include_memory,
+                    external_context=news_context
                 )
             else:
                 response = llm_service.general_chat(req.message.strip(), session_id=session_id)
 
+        if learned_memory:
+            response.answer += "\\n\\n🧠 **Hindsight learned:** " + learned_memory + "\\nI'll use this preference or lesson when relevant in future analysis."
         result = conversation_store.append_exchange(
             session_id, conversation_id, req.instrument_id, req.message.strip(), response.answer, response
         )
