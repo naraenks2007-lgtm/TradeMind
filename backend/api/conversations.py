@@ -74,18 +74,42 @@ def send_message(conversation_id: str, req: ChatMessageRequest, x_trademind_sess
         UUID(conversation_id)
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid conversation id.")
-    if not conversation_store.get_conversation(session_id, conversation_id):
+    conversation = conversation_store.get_conversation(session_id, conversation_id)
+    if not conversation:
         raise HTTPException(status_code=404, detail="Conversation not found.")
+
+    # Feed the recent turns to both the learner and the response model. This lets it
+    # resolve "that price is wrong" against the exact quote it gave earlier.
+    prior_messages = (conversation.get("messages") or [])[-8:]
+    previous_assistant = next(
+        (item.get("content", "") for item in reversed(prior_messages) if item.get("role") == "assistant"),
+        ""
+    )
+    history_context = "\n".join(
+        f"{'USER' if item.get('role') == 'user' else 'TRADEMIND'}: {item.get('content', '')[:1800]}"
+        for item in prior_messages
+    )
+    contextual_message = (
+        f"RECENT CONVERSATION CONTEXT (for resolving follow-up references; do not repeat it):\n"
+        f"{history_context or 'No previous messages.'}\n\n"
+        f"CURRENT USER MESSAGE: {req.message.strip()}"
+    )
 
     try:
         learned_memory = adaptive_learning_service.learn_from_user_reply(
-            req.message.strip(), session_id, req.instrument_id
+            req.message.strip(), session_id, req.instrument_id,
+            previous_assistant_message=previous_assistant
         )
         response = process_personal_memory(session_id, req.message.strip())
         if response is None:
             response = process_greeting(req.message.strip())
         if response is None:
-            if is_market_question(req.message):
+            if is_market_question(req.message) or (
+                previous_assistant and any(term in req.message.lower() for term in (
+                    "wrong", "incorrect", "not right", "that price", "your output", "you said",
+                    "actual price", "that's not", "this is not", "it should be"
+                ))
+            ):
                 snapshot = _get_active_snapshot(req.instrument_id)
                 portfolio = paper_trading_service.get_portfolio_state({snapshot.symbol: snapshot.current_price})
                 headlines = adaptive_learning_service.fetch_and_remember_market_news(snapshot.symbol)
@@ -94,7 +118,7 @@ def send_message(conversation_id: str, req: ChatMessageRequest, x_trademind_sess
                     for item in headlines
                 ) or "No fresh public news headlines were available."
                 response = llm_service.chat_analysis(
-                    message=req.message.strip(),
+                    message=contextual_message,
                     snapshot=snapshot,
                     portfolio=portfolio,
                     include_memory=req.include_memory,
@@ -102,10 +126,14 @@ def send_message(conversation_id: str, req: ChatMessageRequest, x_trademind_sess
                     session_id=session_id
                 )
             else:
-                response = llm_service.general_chat(req.message.strip(), session_id=session_id)
+                response = llm_service.general_chat(contextual_message, session_id=session_id)
 
         if learned_memory:
-            response.answer += "\n\n🧠 **Hindsight learned:** " + learned_memory + "\nI'll use this preference or lesson when relevant in future analysis."
+            response.answer += (
+                "\n\n🧠 **Hindsight learned:** " + learned_memory +
+                "\nI'll treat this as user feedback, not as a replacement for verified live market data, "
+                "and use it when relevant in future analysis."
+            )
         result = conversation_store.append_exchange(
             session_id, conversation_id, req.instrument_id, req.message.strip(), response.answer, response
         )
