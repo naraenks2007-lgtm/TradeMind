@@ -220,7 +220,7 @@ Please provide reasoning and explanation for this market setup. You MUST respond
         recalled_memories = []
         if include_memory:
             query = f"{snapshot.symbol} {message} {ind.trend_summary} RSI={ind.rsi}"
-            items = hindsight_service.recall_memories(query=query, limit=3)
+            items = hindsight_service.recall_memories(query=query, tags=[snapshot.symbol], limit=3)
             recalled_memories = [m.content for m in items]
 
         portfolio_info = "No active portfolio info provided."
