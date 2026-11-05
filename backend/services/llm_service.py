@@ -207,7 +207,8 @@ Please provide reasoning and explanation for this market setup. You MUST respond
         message: str,
         snapshot: MarketSnapshot,
         portfolio: Optional[PortfolioState] = None,
-        include_memory: bool = True
+        include_memory: bool = True,
+        external_context: Optional[str] = None
     ) -> MarketChatResponse:
         """
         Answers user market queries using Groq LLM integrated with real market data,
@@ -264,6 +265,11 @@ PORTFOLIO & PAPER TRADING STATE:
 
 RECALLED HINDSIGHT MEMORIES:
 {chr(10).join([f"- {m}" for m in recalled_memories]) if recalled_memories else "None"}
+
+FRESH PUBLIC NEWS CONTEXT (RSS headlines; reported claims, not independently verified):
+{external_context or "No fresh external news context supplied."}
+
+Use source and publication timestamps where available. Separate headlines from measured market data. If news conflicts with price or indicators, explain the conflict.
 
 Provide a direct, insightful, quantitative answer formatted in clean Markdown.
 Highlight key support/resistance levels, indicator readings, and risk considerations.
