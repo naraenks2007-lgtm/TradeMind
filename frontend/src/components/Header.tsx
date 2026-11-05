@@ -10,7 +10,9 @@ import {
   RefreshCw,
   PlayCircle,
   MessageSquare,
-  Key
+  Key,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { SystemHealth } from '../types';
 
@@ -24,6 +26,8 @@ interface HeaderProps {
   onToggleReplay: () => void;
   onRefresh: () => void;
   loading: boolean;
+  isLightTheme: boolean;
+  onToggleTheme: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -35,7 +39,9 @@ export const Header: React.FC<HeaderProps> = ({
   isReplayActive,
   onToggleReplay,
   onRefresh,
-  loading
+  loading,
+  isLightTheme,
+  onToggleTheme
 }) => {
   const isGroqOnline = health?.groq?.connected;
   const isHindsightOnline = health?.hindsight?.connected;
@@ -138,6 +144,11 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Action Controls & Health */}
         <div className="flex items-center space-x-2">
+
+          <button onClick={onToggleTheme} title={isLightTheme ? 'Switch entire application to night theme' : 'Switch entire application to day theme'} aria-label={isLightTheme ? 'Switch to dark theme' : 'Switch to light theme'} className="flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs font-medium text-slate-300 transition hover:border-cyan-400/50 hover:text-white">
+            {isLightTheme ? <Moon className="h-3.5 w-3.5" /> : <Sun className="h-3.5 w-3.5" />}
+            <span>{isLightTheme ? 'Night' : 'Day'}</span>
+          </button>
           
           {/* Replay Mode Toggle */}
           <button
