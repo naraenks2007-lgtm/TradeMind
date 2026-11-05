@@ -86,15 +86,17 @@ class LLMService:
                     if item.content not in recalled_lessons
                 )
                 recalled_lessons = recalled_lessons[:6]
-                memory_context_str = "RECALLED PREVIOUS EXPERIENCES & LESSONS (FROM HINDSIGHT):\n" + "\n".join(
-                    [f"- {l}" for l in recalled_lessons]
+
+            if recalled_lessons:
+                memory_context_str = "RECALLED PREVIOUS EXPERIENCES & LESSONS (FROM HINDSIGHT):\\n" + "\\n".join(
+                    [f"- {lesson}" for lesson in recalled_lessons]
                 )
             elif not session_id:
                 # Unscoped reflection can include another browser session's private memories.
                 reflection = hindsight_service.reflect_lessons(query=query)
                 if reflection:
                     recalled_lessons = [reflection]
-                    memory_context_str = f"HINDSIGHT HISTORICAL REFLECTION:\n{reflection}"
+                    memory_context_str = f"HINDSIGHT HISTORICAL REFLECTION:\\n{reflection}"
 
         # 2. Build ML Context Section
         ml_section = ""
