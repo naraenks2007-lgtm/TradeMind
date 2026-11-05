@@ -318,7 +318,7 @@ export const api = {
   recallMemory: async (query: string, limit: number = 5): Promise<any> => {
     const res = await fetch(`${API_BASE}/memory/recall`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { ...api.chatSessionHeaders(), 'Content-Type': 'application/json' },
       body: JSON.stringify({ query, limit })
     });
     if (!res.ok) throw new Error('Memory recall failed');
