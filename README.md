@@ -193,7 +193,7 @@ Open **`http://localhost:8000`** in your browser.
 
 TradeMind's chat pipeline can learn from explicit user feedback and bring fresh public market headlines into later analysis.
 
-- **User-taught memory:** messages that clearly express a durable trading preference, correction, or trade lesson are classified by Groq and retained in Hindsight with instrument and browser-session tags. Casual chat is not intentionally retained as a lesson.
+- **User-taught memory:** messages that clearly express a durable trading preference, correction, or trade lesson are classified by Groq and retained in Hindsight with browser-session tags and instrument metadata. Casual chat is not intentionally retained as a lesson.
 - **Learning in future analysis:** market chat and hypothesis generation can retrieve relevant instrument-tagged Hindsight experiences. The chat response exposes recalled memories so users can see what influenced the answer.
 - **Market context ingestion:** market questions trigger a fetch of public Google News RSS headlines for the selected instrument. Headline, publisher, publication date and source URL are retained in Hindsight and passed to the market-analysis prompt as unverified external context. Results are cached in-process for 15 minutes.
 - **Evidence discipline:** headlines are treated as reported claims, not verified price data. TradeMind should distinguish headlines from broker/market-data values and explain conflicts. RSS availability and publisher coverage can vary.
