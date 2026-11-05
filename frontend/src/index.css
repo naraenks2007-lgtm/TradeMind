@@ -186,7 +186,7 @@ code, .font-mono {
   background-color: #eaf0f7 !important;
   border-color: #d5deea !important;
 }
-.tm-app.tm-theme-light [class*="text-white"]:not([class*="bg-blue-"]):not([class*="bg-cyan-"]):not([class*="bg-indigo-"]):not([class*="bg-emerald-"]):not([class*="bg-purple-"]):not([class*="bg-rose-"]) {
+.tm-app.tm-theme-light [class*="text-white"]:not([class*="bg-blue-"]):not([class*="bg-cyan-"]):not([class*="bg-indigo-"]):not([class*="bg-emerald-"]):not([class*="bg-purple-"]):not([class*="bg-rose-"]):not([class*="bg-gradient"]) {
   color: #172033 !important;
 }
 .tm-app.tm-theme-light [class*="text-slate-100"],
