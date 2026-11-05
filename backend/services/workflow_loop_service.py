@@ -14,7 +14,7 @@ from backend.models.paper_trading import NewOrderRequest, OrderSide
 from backend.models.market import MarketSnapshot, CandleData
 
 class WorkflowLoopService:
-    def execute_complete_loop(self, instrument_id: str = "NIFTY_50") -> CompellingLoopResponse:
+    def execute_complete_loop(self, instrument_id: str = "NIFTY_50", session_id: Optional[str] = None) -> CompellingLoopResponse:
         start_time = time.time()
         loop_id = f"LOOP-{uuid.uuid4().hex[:8].upper()}"
 
@@ -65,12 +65,19 @@ class WorkflowLoopService:
             f"and sentiment {ml_result.sentiment.sentiment_label}. Previous lessons and outcome reviews."
         )
         
-        recalled_memories = hindsight_service.recall_memories(query=recall_query, limit=3)
+        recalled_memories = hindsight_service.recall_memories(query=recall_query, tags=[instrument_id], limit=3)
         hindsight_connected = hindsight_service.get_status().connected
 
-        # If Hindsight returns items, use them; otherwise, check reflect
+        # Instrument-wide trade lessons plus private user-taught memories for this browser session.
         recalled_lessons_texts = [m.content for m in recalled_memories] if recalled_memories else []
-        if not recalled_lessons_texts:
+        if session_id:
+            personal_memories = hindsight_service.recall_memories(
+                query=recall_query, tags=["trademind_session_" + session_id], limit=3
+            )
+            recalled_lessons_texts.extend(
+                item.content for item in personal_memories if item.content not in recalled_lessons_texts
+            )
+        if not recalled_lessons_texts and not session_id:
             reflect_summary = hindsight_service.reflect_lessons(query=recall_query)
             if reflect_summary:
                 recalled_lessons_texts.append(reflect_summary)
@@ -122,7 +129,8 @@ class WorkflowLoopService:
         groq_hypothesis = llm_service.generate_hypothesis(
             snapshot=snapshot,
             include_memory=True,
-            ml_analysis=ml_result
+            ml_analysis=ml_result,
+            session_id=session_id
         )
 
         # -------------------------------------------------------------
