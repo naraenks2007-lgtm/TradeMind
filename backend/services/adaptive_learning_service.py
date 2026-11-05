@@ -16,7 +16,7 @@ SESSION_TAG_PREFIX = "trademind_session_"
 
 
 class AdaptiveLearningService:
-    """Turns explicit user feedback and public market headlines into Hindsight experiences."""
+    """Extracts user-taught trading lessons and retains sourced market context."""
 
     def __init__(self) -> None:
         self._news_cache: Dict[str, Dict[str, Any]] = {}
@@ -29,51 +29,83 @@ class AdaptiveLearningService:
             "i prefer", "i usually", "i always", "i never", "i avoid", "my risk",
             "my strategy", "my trading", "my mistake", "i lost", "i won", "trade closed",
             "trade hit", "stop loss hit", "target hit", "that analysis was", "you were wrong",
-            "you were right", "that was wrong", "that was incorrect", "this worked", "this failed", "it worked", "it failed", "should have", "my preferred", "risk appetite", "risk tolerance", "i trade", "i usually enter", "i usually exit", "next time", "from now on", "i want you to",
-            "i don't want", "i do not want", "because i entered", "because i exited"
+            "you were right", "that was wrong", "that was incorrect", "this worked", "this failed",
+            "it worked", "it failed", "should have", "my preferred", "risk appetite", "risk tolerance",
+            "i trade", "i usually enter", "i usually exit", "next time", "from now on", "i want you to",
+            "i don't want", "i do not want", "because i entered", "because i exited", "wrong price",
+            "price is", "price was", "actual price", "market price", "that price", "not correct",
+            "incorrect price", "your output", "you said", "current price", "the value is"
         )
-        return len(message.strip()) >= 18 and any(term in text for term in signals)
+        return len(message.strip()) >= 8 and any(term in text for term in signals)
 
-    def learn_from_user_reply(self, message: str, session_id: str, instrument: str) -> Optional[str]:
-        """Extract only durable preferences, corrections or trade lessons explicitly shared by the user."""
+    def learn_from_user_reply(
+        self,
+        message: str,
+        session_id: str,
+        instrument: str,
+        previous_assistant_message: str = "",
+        market_evidence: Optional[Dict[str, Any]] = None
+    ) -> Optional[str]:
+        """Interpret feedback in its conversational context; preserve unverified price claims as claims."""
         if not self._feedback_candidate(message):
             return None
         try:
-            # Local import avoids coupling the learning service to LLM initialization at import time.
             from backend.services.llm_service import llm_service
             if not llm_service.client:
                 return None
+            evidence = market_evidence or {}
             result = llm_service.client.chat.completions.create(
                 model=llm_service.model,
                 messages=[
                     {"role": "system", "content": (
-                        "Extract durable trading preferences, user corrections, or lessons from this message. "
-                        "Do not infer facts. Return JSON with keys: should_remember (boolean), category "
-                        "(preference|lesson|correction|outcome|none), memory (string). Set should_remember=false "
-                        "for casual chat, one-off questions, unsupported claims, or content that is not useful later. "
-                        "Keep memory concise and preserve uncertainty."
+                        "You are a careful trading-conversation memory extractor. Read the previous assistant "
+                        "claim and the user's reply together. Identify whether the user is correcting a quoted "
+                        "price/data point, stating a durable preference, reporting a trade outcome, or teaching "
+                        "a strategy lesson. Never assume the user's price is true merely because they said it. "
+                        "For price corrections, compare only with the supplied market evidence and classify "
+                        "verification as verified, contradicted, or unverified. A historical/stale snapshot is "
+                        "not proof of a live price. Return JSON keys: should_remember (boolean), category "
+                        "(preference|lesson|correction|outcome|none), memory (string), verification "
+                        "(verified|contradicted|unverified|not_applicable), response_guidance (string). "
+                        "Save useful corrections even when unverified, but explicitly label them as user-reported "
+                        "and include instrument/time context. Do not save a one-off price as a permanent current "
+                        "price. Do not invent missing details. If the message is ambiguous, do not create a "
+                        "durable memory; response_guidance should ask a concise clarification."
                     )},
-                    {"role": "user", "content": f"Instrument context: {instrument}\nUser message: {message}"}
+                    {"role": "user", "content": (
+                        f"Instrument: {instrument}\nPrevious assistant message: {previous_assistant_message[-2500:]}\n"
+                        f"User reply: {message}\nMarket evidence available now: {json.dumps(evidence, default=str)}"
+                    )}
                 ],
                 response_format={"type": "json_object"},
                 temperature=0.1
             )
             payload = json.loads(result.choices[0].message.content or "{}")
             memory = str(payload.get("memory") or "").strip()
-            if not payload.get("should_remember") or len(memory) < 12:
+            if not payload.get("should_remember") or len(memory) < 8:
                 return None
             category = str(payload.get("category") or "lesson").lower()
             if category not in {"preference", "lesson", "correction", "outcome"}:
                 category = "lesson"
+            verification = str(payload.get("verification") or "not_applicable").lower()
+            if verification not in {"verified", "contradicted", "unverified", "not_applicable"}:
+                verification = "unverified"
             now = datetime.now(timezone.utc).isoformat()
+            content = (
+                f"USER-TAUGHT TRADING {category.upper()} (instrument: {instrument}): {memory}. "
+                f"Verification: {verification}. Market evidence at capture: {json.dumps(evidence, default=str)}. "
+                f"Source: explicit user reply in conversation; previous assistant claim: "
+                f"{previous_assistant_message[-1200:]}. Recorded at {now}. "
+                "Do not treat user-reported price values as current market quotes."
+            )
             retained = hindsight_service.retain_memory(
-                content=(
-                    f"USER-TAUGHT TRADING {category.upper()} (instrument context: {instrument}): {memory}. "
-                    f"Source: explicit user reply. Recorded at {now}."
-                ),
-                tags=["user_taught", "trading_" + category, SESSION_TAG_PREFIX + session_id],
-                metadata={"type": "user_feedback", "category": category, "instrument": instrument,
-                          "session_id": session_id, "recorded_at": now}
+                content=content,
+                tags=["user_taught", "trading_" + category, SESSION_TAG_PREFIX + session_id, instrument.upper()],
+                metadata={
+                    "type": "conversation_feedback", "category": category, "verification": verification,
+                    "instrument": instrument, "session_id": session_id, "recorded_at": now,
+                    "market_evidence": evidence
+                }
             )
             return memory if retained.get("success") else None
         except Exception as exc:
