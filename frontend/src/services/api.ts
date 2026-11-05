@@ -298,7 +298,8 @@ export const api = {
   // Compelling Loop Workflow
   runCompellingLoop: async (instrument: string = "NIFTY_50"): Promise<any> => {
     const res = await fetch(`${API_BASE}/loop/run?instrument=${instrument}`, {
-      method: 'POST'
+      method: 'POST',
+      headers: api.chatSessionHeaders()
     });
     if (!res.ok) {
       const err = await res.json();
