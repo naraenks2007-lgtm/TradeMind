@@ -91,7 +91,7 @@ def send_message(conversation_id: str, req: ChatMessageRequest, x_trademind_sess
                     include_memory=req.include_memory
                 )
             else:
-                response = llm_service.general_chat(req.message.strip())
+                response = llm_service.general_chat(req.message.strip(), session_id=session_id)
 
         result = conversation_store.append_exchange(
             session_id, conversation_id, req.instrument_id, req.message.strip(), response.answer, response
