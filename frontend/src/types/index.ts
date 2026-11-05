@@ -4,7 +4,8 @@ export interface InstrumentMetadata {
   id: string;
   symbol: string;
   name: string;
-  file_name: string;
+  instrument_key?: string;
+  file_name?: string;
   source: string;
   is_synthetic: boolean;
   last_timestamp: string;
@@ -40,13 +41,22 @@ export interface IndicatorSummary {
 export interface MarketSnapshot {
   symbol: string;
   instrument_name: string;
+  instrument_key?: string;
   timeframe: string;
   data_source: string;
   is_synthetic: boolean;
+  is_live?: boolean;
+  is_replay?: boolean;
+  connection_status?: string;
   last_timestamp: string;
   candle_count: number;
   current_price: number;
   change_pct: number;
+  open?: number;
+  high?: number;
+  low?: number;
+  close?: number;
+  volume?: number;
   candles: CandleData[];
   indicators: IndicatorSummary;
   raw_indicator_series?: {
@@ -67,14 +77,52 @@ export interface TradingHypothesis {
   hypothesis: string;
   supporting_evidence: string[];
   confidence: number;
+  entry_condition?: string;
   entry_assumption: number;
   stop_loss_assumption: number;
   target_assumption: number;
+  support_level?: number;
+  resistance_level?: number;
   invalidation_conditions: string[];
   risk_explanation: string;
+  data_source?: string;
+  data_timestamp?: string;
   memory_applied: boolean;
   recalled_lessons?: string[];
   created_at?: string;
+}
+
+export interface MarketChatResponse {
+  answer: string;
+  instrument: string;
+  current_price: number;
+  data_source: string;
+  data_timestamp: string;
+  recalled_memories: string[];
+  hypothesis?: TradingHypothesis;
+}
+
+export interface UpstoxStatus {
+  configured: boolean;
+  authenticated: boolean;
+  status: string;
+  user_name?: string;
+  user_id?: string;
+  email?: string;
+  message: string;
+  auth_url?: string;
+}
+
+export interface ReplayState {
+  is_active: boolean;
+  is_playing: boolean;
+  instrument_id: string;
+  speed: number;
+  current_index: number;
+  total_candles: number;
+  current_date?: string;
+  current_price: number;
+  progress_pct: number;
 }
 
 export interface DirectionPrediction {
@@ -172,6 +220,8 @@ export interface SystemHealth {
     status_message: string;
     service_url: string;
   };
+  upstox?: UpstoxStatus;
+  replay?: ReplayState;
   market_data: {
     available: boolean;
     total_instruments: number;
@@ -185,12 +235,14 @@ export interface PaperOrder {
   order_id: string;
   instrument: string;
   side: 'BUY' | 'SELL';
+  order_type?: 'MARKET' | 'LIMIT';
   quantity: number;
   entry_price: number;
+  limit_price?: number;
   current_price: number;
   stop_loss: number;
   target: number;
-  status: 'OPEN' | 'CLOSED' | 'STOPPED_OUT' | 'TARGET_HIT' | 'CANCELLED';
+  status: 'OPEN' | 'FILLED' | 'CLOSED' | 'STOPPED_OUT' | 'TARGET_HIT' | 'CANCELLED';
   realized_pnl: number;
   unrealized_pnl: number;
   fee_incurred: number;
@@ -211,6 +263,7 @@ export interface PortfolioState {
   winning_trades_count: number;
   losing_trades_count: number;
   win_rate: number;
+  max_drawdown_pct?: number;
   total_return_pct: number;
   open_positions: PaperOrder[];
   closed_positions: PaperOrder[];

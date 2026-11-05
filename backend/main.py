@@ -13,7 +13,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 
 from backend.config import settings
-from backend.api import health, market, hypothesis, memory, paper_trading, experiment
+from backend.api import health, market, hypothesis, memory, paper_trading, experiment, loop, upstox, replay
 
 # Set UTF-8 encoding on Windows console
 if sys.platform == "win32":
@@ -41,6 +41,9 @@ app.include_router(hypothesis.router)
 app.include_router(memory.router)
 app.include_router(paper_trading.router)
 app.include_router(experiment.router)
+app.include_router(loop.router)
+app.include_router(upstox.router)
+app.include_router(replay.router)
 
 # Mount frontend build if available
 frontend_dist = Path(__file__).resolve().parent.parent / "frontend" / "dist"

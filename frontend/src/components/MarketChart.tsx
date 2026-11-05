@@ -98,11 +98,25 @@ export const MarketChart: React.FC<MarketChartProps> = ({ snapshot, loading }) =
               }`}>
                 {snapshot.change_pct >= 0 ? '+' : ''}{snapshot.change_pct}%
               </span>
+              {snapshot.is_replay && (
+                <span className="text-[10px] px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono font-bold border border-amber-500/40">
+                  REPLAY MODE
+                </span>
+              )}
+              {snapshot.is_live && (
+                <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono font-bold border border-emerald-500/40 animate-pulse">
+                  LIVE FEED
+                </span>
+              )}
             </div>
             <div className="flex items-center space-x-2 text-xs text-slate-400 mt-0.5">
-              <span>₹{snapshot.current_price.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+              <span className="font-bold text-white">₹{snapshot.current_price.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
               <span>•</span>
               <span className="font-mono text-slate-400">Timeframe: {snapshot.timeframe}</span>
+              <span>•</span>
+              <span className="font-mono text-slate-500">
+                O: ₹{(snapshot.open ?? snapshot.current_price).toFixed(2)} | H: ₹{(snapshot.high ?? snapshot.current_price).toFixed(2)} | L: ₹{(snapshot.low ?? snapshot.current_price).toFixed(2)}
+              </span>
             </div>
           </div>
         </div>
@@ -110,16 +124,20 @@ export const MarketChart: React.FC<MarketChartProps> = ({ snapshot, loading }) =
         {/* Source Badge with Disclaimer */}
         <div className="flex items-center space-x-2">
           <div className={`px-2.5 py-1 rounded-lg border text-[11px] font-mono flex items-center gap-1.5 ${
-            snapshot.is_synthetic 
+            snapshot.is_replay
+              ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+              : snapshot.is_live
+              ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30'
+              : snapshot.is_synthetic 
               ? 'bg-amber-500/10 text-amber-300 border-amber-500/30'
               : 'bg-blue-500/10 text-blue-300 border-blue-500/30'
           }`}>
             <Info className="w-3.5 h-3.5" />
-            <span>Source: {snapshot.data_source}</span>
+            <span>{snapshot.data_source}</span>
           </div>
 
           <div className="text-[11px] font-mono text-slate-400 bg-slate-900/60 px-2.5 py-1 rounded-lg border border-slate-800">
-            Latest: {snapshot.last_timestamp}
+            {snapshot.last_timestamp}
           </div>
         </div>
 

@@ -92,6 +92,20 @@ def run_tests():
     print(f"    Agent B (With Memory): Accuracy={exp['agent_b_metrics']['directional_accuracy_pct']}%, Return={exp['agent_b_metrics']['total_return_pct']}%, Mistakes={exp['agent_b_metrics']['repeated_mistakes_count']}")
     print(f"    Summary: {exp['summary_analysis'][:140]}...")
 
+    # 7. Compelling AI Loop (Market Data -> Tabular ML -> Hindsight Recall -> Groq Reasoning -> Paper Trade -> Hindsight Reply)
+    print("\n[7] Testing Compelling AI Loop (/api/loop/run)...")
+    loop_res = client.post("/api/loop/run?instrument=NIFTY_50")
+    assert loop_res.status_code == 200, f"Loop failed: {loop_res.text}"
+    loop_data = loop_res.json()
+    print(f"    Loop ID: {loop_data['loop_id']} ({loop_data['execution_time_seconds']}s)")
+    print(f"    Step 1 (Market Data): {loop_data['step1_market_data']['current_price']} | Trend: {loop_data['step1_market_data']['indicators']['trend_regime']}")
+    print(f"    Step 2 (Tabular ML): Direction={loop_data['step2_ml_analysis']['direction']['direction']} ({loop_data['step2_ml_analysis']['direction']['confidence']*100:.0f}%) | Volatility={loop_data['step2_ml_analysis']['volatility']['volatility_regime']} ({loop_data['step2_ml_analysis']['volatility']['predicted_volatility_pct']}%)")
+    print(f"    Step 3 (Hindsight Recall): Recalled {loop_data['step3_hindsight_recall']['recalled_items_count']} memory lessons")
+    print(f"    Step 4 (Groq Reason): {loop_data['step4_groq_explanation']['hypothesis'][:110]}...")
+    print(f"    Step 5 (Paper Result): {loop_data['step5_paper_trading_result']['verdict']} | Net PnL: Rs. {loop_data['step5_paper_trading_result']['net_realized_pnl']}")
+    print(f"    Step 6 (Hindsight Reply): {loop_data['step6_hindsight_lesson_reply']['hindsight_reply'][:120]}...")
+    print(f"    Verdict: {loop_data['summary_verdict']}")
+
     print("\n==================================================")
     print("ALL BACKEND TESTS PASSED SUCCESSFULLY!")
     print("==================================================")

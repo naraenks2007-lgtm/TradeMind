@@ -29,7 +29,9 @@ INSTRUMENTS = {
     "BANK_NIFTY": {"symbol": "^NSEBANK", "name": "NIFTY Bank Index"},
     "RELIANCE": {"symbol": "RELIANCE.NS", "name": "Reliance Industries Ltd"},
     "TCS": {"symbol": "TCS.NS", "name": "Tata Consultancy Services Ltd"},
-    "INFY": {"symbol": "INFY.NS", "name": "Infosys Ltd"}
+    "INFY": {"symbol": "INFY.NS", "name": "Infosys Ltd"},
+    "HDFCBANK": {"symbol": "HDFCBANK.NS", "name": "HDFC Bank Ltd"},
+    "ICICIBANK": {"symbol": "ICICIBANK.NS", "name": "ICICI Bank Ltd"}
 }
 
 OUTPUT_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "historical")

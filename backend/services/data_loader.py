@@ -14,6 +14,8 @@ INSTRUMENT_NAMES = {
     "RELIANCE": "Reliance Industries Ltd",
     "TCS": "Tata Consultancy Services Ltd",
     "INFY": "Infosys Ltd",
+    "HDFCBANK": "HDFC Bank Ltd",
+    "ICICIBANK": "ICICI Bank Ltd",
     "DEMO_NIFTY_FALLBACK": "Demo Synthetic Nifty (Offline Fallback)"
 }
 

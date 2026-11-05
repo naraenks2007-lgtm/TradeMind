@@ -14,3 +14,7 @@ env/
 *.env
 .env.example
 
+*token*.json
+.upstox_session.json
+*.db
+data/*.db

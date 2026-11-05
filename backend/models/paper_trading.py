@@ -6,8 +6,13 @@ class OrderSide(str, Enum):
     BUY = "BUY"
     SELL = "SELL"
 
+class OrderType(str, Enum):
+    MARKET = "MARKET"
+    LIMIT = "LIMIT"
+
 class OrderStatus(str, Enum):
     OPEN = "OPEN"
+    FILLED = "FILLED"
     CLOSED = "CLOSED"
     STOPPED_OUT = "STOPPED_OUT"
     TARGET_HIT = "TARGET_HIT"
@@ -17,8 +22,10 @@ class PaperOrder(BaseModel):
     order_id: str
     instrument: str
     side: OrderSide
+    order_type: OrderType = OrderType.MARKET
     quantity: int
     entry_price: float
+    limit_price: Optional[float] = None
     current_price: float
     stop_loss: float
     target: float
@@ -34,7 +41,9 @@ class PaperOrder(BaseModel):
 class NewOrderRequest(BaseModel):
     instrument: str
     side: OrderSide
+    order_type: OrderType = OrderType.MARKET
     quantity: int = Field(gt=0)
+    limit_price: Optional[float] = None
     stop_loss: Optional[float] = None
     target: Optional[float] = None
     notes: Optional[str] = None
@@ -50,6 +59,7 @@ class PortfolioState(BaseModel):
     winning_trades_count: int = 0
     losing_trades_count: int = 0
     win_rate: float = 0.0
+    max_drawdown_pct: float = 0.0
     total_return_pct: float = 0.0
     open_positions: List[PaperOrder] = []
     closed_positions: List[PaperOrder] = []

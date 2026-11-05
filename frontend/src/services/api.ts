@@ -5,7 +5,10 @@ import {
   SystemHealth,
   PortfolioState,
   PaperOrder,
-  ExperimentReport
+  ExperimentReport,
+  UpstoxStatus,
+  ReplayState,
+  MarketChatResponse
 } from '../types';
 
 const API_BASE = '/api';
@@ -45,7 +48,85 @@ export const api = {
     return res.json();
   },
 
-  // Hypothesis
+  // Upstox OAuth & Market Data
+  getUpstoxStatus: async (): Promise<UpstoxStatus> => {
+    const res = await fetch(`${API_BASE}/upstox/status`);
+    if (!res.ok) throw new Error('Failed fetching Upstox status');
+    return res.json();
+  },
+
+  getUpstoxAuthUrl: async (): Promise<{ auth_url: string }> => {
+    const res = await fetch(`${API_BASE}/upstox/auth-url`);
+    if (!res.ok) throw new Error('Failed fetching Upstox auth URL');
+    return res.json();
+  },
+
+  disconnectUpstox: async (): Promise<{ status: string; message: string }> => {
+    const res = await fetch(`${API_BASE}/upstox/disconnect`, { method: 'POST' });
+    if (!res.ok) throw new Error('Failed disconnecting Upstox');
+    return res.json();
+  },
+
+  setManualUpstoxToken: async (access_token: string): Promise<UpstoxStatus> => {
+    const res = await fetch(`${API_BASE}/upstox/token`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ access_token })
+    });
+    if (!res.ok) throw new Error('Failed updating Upstox token');
+    return res.json();
+  },
+
+  // Historical Replay
+  startReplay: async (instrument: string = 'NIFTY_50', startDate?: string): Promise<ReplayState> => {
+    const res = await fetch(`${API_BASE}/replay/start`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ instrument, start_date: startDate })
+    });
+    if (!res.ok) throw new Error('Failed starting replay mode');
+    return res.json();
+  },
+
+  stopReplay: async (): Promise<{ is_active: boolean; status: string }> => {
+    const res = await fetch(`${API_BASE}/replay/stop`, { method: 'POST' });
+    if (!res.ok) throw new Error('Failed stopping replay mode');
+    return res.json();
+  },
+
+  stepReplay: async (steps: number = 1): Promise<ReplayState> => {
+    const res = await fetch(`${API_BASE}/replay/step`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ steps })
+    });
+    if (!res.ok) throw new Error('Failed advancing replay');
+    return res.json();
+  },
+
+  setReplaySpeed: async (speed: number): Promise<{ speed: number }> => {
+    const res = await fetch(`${API_BASE}/replay/speed`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ speed })
+    });
+    if (!res.ok) throw new Error('Failed setting replay speed');
+    return res.json();
+  },
+
+  getReplayState: async (): Promise<ReplayState> => {
+    const res = await fetch(`${API_BASE}/replay/state`);
+    if (!res.ok) throw new Error('Failed fetching replay state');
+    return res.json();
+  },
+
+  getReplaySnapshot: async (limit: number = 180): Promise<MarketSnapshot> => {
+    const res = await fetch(`${API_BASE}/replay/snapshot?limit=${limit}`);
+    if (!res.ok) throw new Error('Failed fetching replay snapshot');
+    return res.json();
+  },
+
+  // Groq AI Hypothesis & Chat
   generateHypothesis: async (
     instrumentId: string,
     includeMemory: boolean = true,
@@ -67,6 +148,27 @@ export const api = {
     return res.json();
   },
 
+  chatWithGroq: async (
+    instrumentId: string,
+    message: string,
+    includeMemory: boolean = true
+  ): Promise<MarketChatResponse> => {
+    const res = await fetch(`${API_BASE}/hypothesis/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        instrument_id: instrumentId,
+        message,
+        include_memory: includeMemory
+      })
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.detail || 'Chat query failed');
+    }
+    return res.json();
+  },
+
   // Paper Trading
   getPortfolio: async (): Promise<PortfolioState> => {
     const res = await fetch(`${API_BASE}/paper-trading/portfolio`);
@@ -77,7 +179,9 @@ export const api = {
   placeOrder: async (order: {
     instrument: string;
     side: 'BUY' | 'SELL';
+    order_type?: 'MARKET' | 'LIMIT';
     quantity: number;
+    limit_price?: number;
     stop_loss?: number;
     target?: number;
     notes?: string;

@@ -4,6 +4,8 @@ from typing import Dict, Any
 from backend.services.llm_service import llm_service
 from backend.services.hindsight_service import hindsight_service
 from backend.services.data_loader import data_loader_service
+from backend.services.upstox_service import upstox_service
+from backend.services.replay_service import replay_service
 
 router = APIRouter(prefix="/api/health", tags=["Health"])
 
@@ -15,7 +17,10 @@ def get_system_health() -> Dict[str, Any]:
     # 2. Hindsight connection
     hindsight_stat = hindsight_service.get_status()
     
-    # 3. Market data availability
+    # 3. Upstox connection
+    upstox_stat = upstox_service.get_connection_status()
+    
+    # 4. Market data availability
     instruments = data_loader_service.list_available_instruments()
     historical_count = sum(1 for i in instruments if not i.is_synthetic and "Historical" in i.source)
     synthetic_count = sum(1 for i in instruments if i.is_synthetic)
@@ -36,6 +41,8 @@ def get_system_health() -> Dict[str, Any]:
             "status_message": hindsight_stat.status_message,
             "service_url": hindsight_stat.service_url
         },
+        "upstox": upstox_stat,
+        "replay": replay_service.get_state(),
         "market_data": {
             "available": len(instruments) > 0,
             "total_instruments": len(instruments),

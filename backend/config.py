@@ -19,6 +19,13 @@ class Settings:
     HINDSIGHT_BASE_URL: str = os.getenv("HINDSIGHT_BASE_URL", "https://api.hindsight.vectorize.io")
     HINDSIGHT_BANK_ID: str = os.getenv("HINDSIGHT_BANK_ID", "trademind-bank")
     
+    UPSTOX_CLIENT_ID: str = os.getenv("UPSTOX_CLIENT_ID", "")
+    UPSTOX_CLIENT_SECRET: str = os.getenv("UPSTOX_CLIENT_SECRET", "")
+    UPSTOX_REDIRECT_URI: str = os.getenv("UPSTOX_REDIRECT_URI", "http://localhost:8000/api/upstox/callback")
+    UPSTOX_ACCESS_TOKEN: str = os.getenv("UPSTOX_ACCESS_TOKEN", "")
+    MARKET_DATA_PROVIDER: str = os.getenv("MARKET_DATA_PROVIDER", "upstox")
+    MARKET_DATA_MODE: str = os.getenv("MARKET_DATA_MODE", "live")
+    
     HOST: str = os.getenv("HOST", "0.0.0.0")
     PORT: int = int(os.getenv("PORT", "8000"))
 

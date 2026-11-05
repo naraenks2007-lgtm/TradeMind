@@ -2,9 +2,28 @@
 
 TradeMind is a quantitative trading intelligence platform built for Indian equities (NIFTY 50, BANK NIFTY, RELIANCE, TCS, INFY). It pairs deterministic Python-calculated technical indicators with **Groq LLM** for hypothesis generation and **Vectorize Hindsight** for experiential long-term memory.
 
----
+## Architectural Principles & Decisions
 
-## 1. Band AI Development Workflow
+1. **No LLM Training on Raw Stock Numbers**:
+   - Smaller, specialized **tabular Machine Learning models** (Scikit-Learn `RandomForestClassifier` for Direction, `GradientBoostingRegressor` for Volatility, and volume-flow models for Sentiment) handle numerical predictive modeling.
+   - **Groq LLM** is strictly utilized for **reasoning, thesis formulation, and explanation**, synthesizing ML probabilities with historical market memories.
+
+2. **No Framework Over-Engineering**:
+   - Deterministic calculations, technical indicators, order execution, P&L math, and data loading remain in clean **FastAPI & Python standard libraries**.
+   - Multi-step orchestration is focused where it delivers value: the autonomous closed-loop workflow.
+
+3. **The Compelling AI Loop**:
+   Demonstrates a complete 6-stage closed loop:
+   ```
+   Market Data comes in
+     → Tabular ML analyzes it (Direction, Volatility, Sentiment)
+     → Hindsight recalls what happened before (Historical memory bank)
+     → Groq explains the decision (Reasoning & quantitative hypothesis)
+     → Paper Trading measures the result (₹1,00,000 simulated capital, slippage & fee model)
+     → Hindsight remembers the lesson & replies (Experiential retention & conversational reply)
+   ```
+
+---
 
 TradeMind was coordinated using **Band Desktop** across five specialized development agents:
 
