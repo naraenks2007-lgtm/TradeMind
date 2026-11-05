@@ -289,13 +289,13 @@ Highlight key support/resistance levels, indicator readings, and risk considerat
         )
 
 
-    def general_chat(self, message: str) -> MarketChatResponse:
+    def general_chat(self, message: str, session_id: Optional[str] = None) -> MarketChatResponse:
         """General assistant responses that do not require market snapshot construction."""
         if not self.client:
             raise RuntimeError("Groq LLM Client is not initialized. Please set GROQ_API_KEY.")
         recalled_memories = []
         try:
-            items = hindsight_service.recall_memories(query=message, limit=3)
+            items = hindsight_service.recall_memories(query=message, tags=["trademind_session_" + session_id] if session_id else None, limit=3)
             recalled_memories = [item.content for item in items]
         except Exception:
             pass
