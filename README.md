@@ -1,204 +1,324 @@
-# TradeMind AI – Intelligent Market Hypothesis & Long-Term Memory Engine
+# TradeMind AI
 
-TradeMind is a quantitative trading intelligence platform built for Indian equities (NIFTY 50, BANK NIFTY, RELIANCE, TCS, INFY). It pairs deterministic Python-calculated technical indicators with **Groq LLM** for hypothesis generation and **Vectorize Hindsight** for experiential long-term memory.
+<p align="center">
+  <img src="docs/images/trademind-architecture.png" alt="TradeMind architecture" width="900">
+</p>
 
-## Architectural Principles & Decisions
+<p align="center"><strong>AI-assisted trading research, paper trading, and persistent agent memory.</strong></p>
 
-1. **No LLM Training on Raw Stock Numbers**:
-   - Smaller, specialized **tabular Machine Learning models** (Scikit-Learn `RandomForestClassifier` for Direction, `GradientBoostingRegressor` for Volatility, and volume-flow models for Sentiment) handle numerical predictive modeling.
-   - **Groq LLM** is strictly utilized for **reasoning, thesis formulation, and explanation**, synthesizing ML probabilities with historical market memories.
-
-2. **No Framework Over-Engineering**:
-   - Deterministic calculations, technical indicators, order execution, P&L math, and data loading remain in clean **FastAPI & Python standard libraries**.
-   - Multi-step orchestration is focused where it delivers value: the autonomous closed-loop workflow.
-
-3. **The Compelling AI Loop**:
-   Demonstrates a complete 6-stage closed loop:
-   ```
-   Market Data comes in
-     → Tabular ML analyzes it (Direction, Volatility, Sentiment)
-     → Hindsight recalls what happened before (Historical memory bank)
-     → Groq explains the decision (Reasoning & quantitative hypothesis)
-     → Paper Trading measures the result (₹1,00,000 simulated capital, slippage & fee model)
-     → Hindsight remembers the lesson & replies (Experiential retention & conversational reply)
-   ```
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white" alt="Python">
+  <img src="https://img.shields.io/badge/FastAPI-API-009688?logo=fastapi&logoColor=white" alt="FastAPI">
+  <img src="https://img.shields.io/badge/React-Frontend-61DAFB?logo=react&logoColor=black" alt="React">
+  <img src="https://img.shields.io/badge/TypeScript-UI-3178C6?logo=typescript&logoColor=white" alt="TypeScript">
+  <img src="https://img.shields.io/badge/Memory-Hindsight-7C3AED" alt="Hindsight">
+  <img src="https://img.shields.io/badge/Trading-Paper%20Only-orange" alt="Paper trading only">
+</p>
 
 ---
 
-TradeMind was coordinated using **Band Desktop** across five specialized development agents:
+## Overview
 
-- **Architect Agent (`naraenks2007/architect-agent`)**: Designed system architecture, data schemas, and memory loops.
-- **Backend Agent (`naraenks2007/backend-agent`)**: Implemented FastAPI backend, Groq integration (`llm_service.py`), and Hindsight SDK client (`hindsight_service.py`).
-- **Frontend Agent (`naraenks2007/frontend-agent`)**: Built React 18 dashboard, candlestick charting, indicator overlays, and comparison lab.
-- **Data Agent (`naraenks2007/data-agent`)**: Built automated historical market data ingestion (`yfinance`), CSV validation, and indicator math.
-- **Reviewer Agent (`naraenks2007/reviewer-agent`)**: Conducted end-to-end verification, eliminated look-ahead bias, and audited security.
+**TradeMind AI** is an experimental trading research platform that combines quantitative market analysis, machine-learning signals, large-language-model reasoning, and long-term experiential memory.
 
-> **Note on Band AI:** Band Desktop is used strictly as a development orchestration tool. It is not bundled or embedded into the production TradeMind application. Detailed logs can be found in [`docs/BAND_DEVELOPMENT_LOG.md`](docs/BAND_DEVELOPMENT_LOG.md).
+Traditional chat assistants may lose useful context between sessions. TradeMind explores a memory-augmented workflow: retain relevant trading preferences, hypotheses, and lessons in **Hindsight**, retrieve related memories when needed, and use that context to support later research.
 
----
+TradeMind is intended for learning, research, and simulated trading. **It does not execute live real-money trades and is not a financial-advice product.**
 
-## 2. Market Data Architecture
+## The problem
 
-TradeMind does not use empty datasets or arbitrary hardcoded chart values. Real 1-year historical daily OHLCV datasets are provided in `data/historical/`:
+A research assistant may produce a useful analysis in one session but fail to apply the same preference or lesson in a later session. It can also be difficult to connect market indicators, previous hypotheses, and recorded simulated outcomes in one consistent workflow.
 
-| Instrument | Symbol / Ticker | Records | Date Range | Data Source |
-|------------|-----------------|---------|------------|-------------|
-| **NIFTY 50** | `^NSEI` | 246 rows | 2025-11-04 to 2026-11-03 | Historical (yfinance demonstration feed) |
-| **BANK NIFTY** | `^NSEBANK` | 246 rows | 2025-11-04 to 2026-11-03 | Historical (yfinance demonstration feed) |
-| **RELIANCE** | `RELIANCE.NS` | 247 rows | 2025-11-04 to 2026-11-03 | Historical (yfinance demonstration feed) |
-| **TCS** | `TCS.NS` | 247 rows | 2025-11-04 to 2026-11-03 | Historical (yfinance demonstration feed) |
-| **INFY** | `INFY.NS` | 247 rows | 2025-11-04 to 2026-11-03 | Historical (yfinance demonstration feed) |
-| **DEMO NIFTY** | `DEMO_NIFTY_FALLBACK` | 120 rows | 2026-05-22 to 2026-11-05 | Synthetic Demonstration Fallback (Offline) |
+TradeMind brings these capabilities together:
 
-### Scripts:
-- **Data Downloader:** `python scripts/download_market_data.py`
-- **Data Validator:** `python scripts/validate_market_data.py`
-- **Custom Uploads:** Users can upload arbitrary OHLCV CSV files through the web dashboard or `POST /api/market/upload`.
+- Inspect historical market data and calculate technical indicators.
+- Generate and review research hypotheses with an LLM.
+- Retain useful experiences and retrieve relevant memories later.
+- Explore ideas through experiment-oriented workflows.
+- Review simulated trades and historical scenarios.
 
----
+## Features
 
-## 3. Deterministic Indicators & Groq LLM Integration
+## Screenshots
 
-TradeMind enforces a strict anti-hallucination rule: **the LLM is never allowed to invent technical indicator numbers**.
-All indicators are computed in Python via `ta` and pandas:
-- **RSI (14)**
-- **EMAs (20, 50, 200)**
-- **MACD (12, 26, 9)** line, signal, and histogram
-- **Bollinger Bands (20, 2 std dev)**
-- **ATR (14)** and Volatility state
+### Dashboard
+<p align="center">
+  <img src="docs/images/dashboard.png"
+       alt="TradeMind Dashboard"
+       width="900">
+</p>
 
-### Groq LLM Configuration (`backend/services/llm_service.py`)
-- Official SDK: `from groq import Groq`
-- Model: `openai/gpt-oss-120b` (configurable in `.env`)
-- Structured JSON output validated using **Pydantic**:
-  - `instrument`
-  - `market_direction` (`BULLISH` | `BEARISH` | `NEUTRAL`)
-  - `hypothesis`
-  - `supporting_evidence`
-  - `confidence` (0.0 to 1.0)
-  - `entry_assumption`
-  - `stop_loss_assumption`
-  - `target_assumption`
-  - `invalidation_conditions`
-  - `risk_explanation`
+### Trading Analysis
+<p align="center">
+  <img src="docs/images/trading-analysis.png"
+       alt="TradeMind Trading Analysis"
+       width="900">
+</p>
 
----
+## Screenshots
 
-## 4. Vectorize Hindsight – Experiential Long-Term Memory
+### ChatBot
+<p align="center">
+  <img src="docs/images/chatbot.png"
+       alt="ChatBot"
+       width="900">
+</p>
 
-Official SDK integration (`hindsight-client` v1.2.0) implementing the 3 core memory verbs:
-1. **`retain`**: Ingests market conditions, technical snapshots, hypotheses, and paper-trade outcomes into the long-term memory bank.
-2. **`recall`**: Executes sub-second parallel hybrid search (semantic + BM25 + entity graph) to retrieve relevant past experiences when evaluating new setups.
-3. **`reflect`**: Performs analytical reasoning across accumulated trade outcomes to synthesize lessons before executing new positions.
+### HindSight
+<p align="center">
+  <img src="docs/images/hindsight.png"
+       alt="HindSight"
+       width="900">
+</p>
 
-> **Honest Degradation:** If `HINDSIGHT_API_KEY` is not configured, TradeMind honestly displays `Offline: HINDSIGHT_API_KEY not configured in .env` and operates in deterministic mode. It never mocks or simulates fake Hindsight memory responses.
+### Quantitative market analysis
 
----
+TradeMind works with historical market data from configured providers or CSV input. The analysis layer includes:
 
-## 5. Memory vs. No-Memory Experiment Lab
+| Indicator | Purpose |
+|---|---|
+| RSI (14) | Momentum and overbought/oversold context |
+| EMA (20/50/200) | Trend and moving-average context |
+| MACD (12/26/9) | Momentum and trend-change context |
+| Bollinger Bands (20, 2) | Volatility and relative price range |
+| ATR (14) | Average range / volatility estimation |
 
-The Comparison Lab runs identical historical market scenarios through two agents without look-ahead bias:
-- **Agent A (No Memory):** Standard rule-based technical setup evaluation.
-- **Agent B (With Hindsight Memory):** Evaluates identical technicals but incorporates recalled historical lessons (e.g., avoiding overbought RSI traps or low-volatility squeezes).
+Indicators are analytical inputs, not standalone buy or sell instructions.
 
-### Benchmark Comparison Metrics:
-- **Directional Accuracy (%)**
-- **Win Rate (%)**
-- **Simulated Cumulative Return (%)**
-- **Repeated Known Mistakes Count**
+### Machine-learning signals
 
----
+The project includes experimental ML components:
 
-## 6. Paper Trading Engine
+- Random Forest classifier for directional classification.
+- Gradient Boosting regressor for volatility estimation.
+- Volume-flow component used as an additional sentiment-style signal.
 
-Simulated trading environment with **₹1,00,000 initial capital**:
-- Virtual Buy and Sell orders with quantity, entry, stop-loss, and target.
-- Live mark-to-market unrealized and realized P&L calculation.
-- Realistic execution costs: **0.03% brokerage & taxes** and **0.02% slippage model**.
-- Automatically reflects trade outcomes into Hindsight memory upon position close.
-- Account reset button to restore balance to ₹1,00,000.
+Treat model outputs as experimental. Their reliability depends on data quality, validation methodology, and changing market conditions.
 
----
+### LLM-assisted research with Groq
 
-## Persistent AI Chat Workspace
+The backend integrates a Groq-hosted language model for natural-language explanations and hypothesis-oriented workflows. The LLM interprets available context; it does not replace market data or quantitative calculations.
 
-### Chat memory and file analysis
+### Persistent experiential memory with Hindsight
 
-The chat accepts explicit save commands such as `save today petrol price is 100`, `store ...`, or `remember ...`. User-stated facts are retained in Hindsight with the saved timestamp in the Asia/Kolkata timezone and indexed in the session-scoped SQLite database so questions such as `what is the petrol price I said?` can return the original value and save time. The local index provides recall continuity if Hindsight is temporarily unavailable; the chat reports that fallback honestly.
+Hindsight provides the memory layer used to retain and retrieve useful context across interactions.
 
-The chat attachment control supports text-based PDFs, CSV files, and PNG/JPG/JPEG/WEBP images up to 10 MB. PDF text is extracted with pypdf, CSVs are profiled with pandas, and images are analysed using Groq's vision model. Scanned/image-only PDFs currently need OCR and are reported as unsupported when no selectable text is present.
+1. **Retain:** store a relevant preference, observation, hypothesis, or lesson.
+2. **Recall:** retrieve related memories when a future question needs that context.
+3. **Reflect:** review previous experiences and outcomes where supported by the workflow.
+4. **Reason:** provide relevant retrieved context to the LLM-assisted research step.
 
-The chat has a persisted dark/light theme toggle. Simple greetings and general questions no longer require market snapshot construction; market-specific prompts still use the market-data and technical-analysis pipeline.
+Hindsight is a memory system, not a model-training or fine-tuning process. Saving a memory does not retrain the Groq model.
 
+Useful links:
+- [Hindsight GitHub](https://github.com/vectorize-io/hindsight)
+- [Hindsight documentation](https://hindsight.vectorize.io/)
+- [What is agent memory?](https://vectorize.io/what-is-agent-memory)
 
-The AI chat includes session-scoped conversation history, automatic titles, new conversations, resume/delete controls, and a 3D animated assistant orb. Conversations and assistant replies are stored in SQLite at `data/conversations.sqlite3` by default; the Groq response, market context, and recalled Hindsight memories are stored with each assistant message.
+### Experimentation and hypothesis review
 
-For deployments with persistent volumes, set `TRADEMIND_CHAT_DB_PATH` to a file path on the mounted volume (for example, `/var/data/conversations.sqlite3` on a service with a disk mounted at `/var/data`). Without a persistent volume, platforms with ephemeral filesystems may discard SQLite data during redeploys or instance replacement.
+TradeMind includes an experiment-oriented workflow for exploring trading hypotheses and reviewing the signals and context associated with them. Validate experimental outputs against reproducible historical data before drawing conclusions.
 
-The current app has no user login, so the API scopes conversations using a browser-generated `X-TradeMind-Session` identifier stored in local storage. This separates browser sessions but is not account authentication; add authenticated user IDs before exposing multi-user private chat as a production SaaS feature.
+### Paper trading
 
-## 8. Setup & Installation
+The paper-trading module supports simulated order and portfolio workflows. The configured starting balance is **₹1,00,000**. Fee/tax and slippage assumptions are configurable in the application.
+
+These are simulation assumptions, not actual broker charges or guaranteed execution prices.
+
+### Historical replay
+
+Historical replay supports reviewing a market scenario against past data. Results depend on the quality of the historical data and the assumptions used by the simulation.
+
+### Optional Upstox connection
+
+The project includes an optional Upstox OAuth integration path. Availability depends on valid credentials, account permissions, and broker-side API access. An OAuth connection should not be interpreted as permission for live order execution.
+
+## Technology stack
+
+| Layer | Technologies |
+|---|---|
+| Frontend | React 18, TypeScript, Vite, Tailwind CSS |
+| Backend | Python, FastAPI, Uvicorn |
+| LLM | Groq API |
+| Memory | Vectorize Hindsight (`hindsight-client`) |
+| Data analysis | pandas, NumPy, `ta`, yfinance |
+| Machine learning | scikit-learn |
+| Persistence | SQLite |
+| Broker integration | Optional Upstox OAuth |
+
+## Architecture
+
+The diagram at the top of this README illustrates the high-level system:
+
+- React frontend sends requests to FastAPI.
+- FastAPI coordinates market analysis and application services.
+- Hindsight stores and retrieves experiential context.
+- SQLite stores application records such as paper-trading and conversation data.
+- Paper trading and replay support simulation and review.
+
+## Project structure
+
+The repository is organized into frontend and backend areas. File names may evolve as development continues.
+
+```text
+TradeMind/
+├── backend/
+│   ├── main.py
+│   ├── routers/
+│   └── services/
+├── frontend/
+│   ├── src/
+│   ├── package.json
+│   └── vite.config.ts
+├── docs/
+│   └── images/
+│       └── trademind-architecture.png
+├── requirements.txt
+├── .env.example
+└── README.md
+```
+
+If `.env.example` is not present in your checkout, create one using the variable names referenced by your current backend code. Never put real secrets in it.
+
+## Getting started
 
 ### Prerequisites
-- Python 3.10+
-- Node.js 18+ and npm
 
-### 1. Environment Configuration
-Copy the template and configure your keys:
+- Python 3.10 or later, subject to dependency compatibility.
+- Node.js and npm.
+- Git.
+- API credentials for external services you want to enable.
+
+### 1. Clone the repository
+
 ```bash
-cp .env.example .env
-```
-Edit `.env`:
-```ini
-GROQ_API_KEY=gsk_your_groq_api_key_here
-GROQ_MODEL=openai/gpt-oss-120b
-HINDSIGHT_API_KEY=your_hindsight_api_key_here
-HINDSIGHT_BASE_URL=https://api.hindsight.vectorize.io
-PORT=8000
-HOST=0.0.0.0
+git clone https://github.com/naraenks2007-lgtm/TradeMind.git
+cd TradeMind
 ```
 
-### 2. Backend Installation & Verification
+### 2. Create a virtual environment
+
+Windows PowerShell:
+
+```powershell
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+```
+
+Windows Command Prompt:
+
+```bat
+python -m venv .venv
+.venv\Scripts\activate
+```
+
+macOS / Linux:
+
 ```bash
-# Install Python dependencies
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+### 3. Install backend dependencies
+
+```bash
+python -m pip install --upgrade pip
 pip install -r requirements.txt
-
-# Download / Refresh market data
-python scripts/download_market_data.py
-
-# Validate all market data files
-python scripts/validate_market_data.py
-
-# Run end-to-end backend test suite
-python scripts/test_backend.py
 ```
 
-### 3. Frontend Build & Launch
+### 4. Configure environment variables
+
+Create a `.env` file in the project root. Add only the credentials and configuration required by the services you enable.
+
+Illustrative example:
+
+```env
+GROQ_API_KEY=your_groq_api_key
+HINDSIGHT_API_KEY=your_hindsight_api_key
+# Add Hindsight endpoint/project settings required by your deployment.
+# Add Upstox OAuth credentials only if using that optional integration.
+```
+
+**Important:** These variable names are examples. Check the actual names read by your current backend code and Hindsight deployment. Never commit `.env`, API keys, access tokens, or refresh tokens.
+
+### 5. Start the backend
+
+From the repository root:
+
 ```bash
-# Build frontend
+python -m uvicorn backend.main:app --reload --host 127.0.0.1 --port 8000
+```
+
+FastAPI documentation is normally available at:
+
+- http://127.0.0.1:8000/docs
+- http://127.0.0.1:8000/redoc
+
+### 6. Start the frontend
+
+Open a second terminal:
+
+```bash
 cd frontend
 npm install
-npm run build
-cd ..
-
-# Start application server (serves API and built frontend on port 8000)
-python backend/main.py
+npm run dev
 ```
-Open **`http://localhost:8000`** in your browser.
 
-*(For frontend development with Vite hot reload: run `npm run dev` in `frontend/` on port 3000).*
+Open the local URL printed by Vite (commonly `http://localhost:5173`).
 
+## Suggested demo workflow
 
-## Adaptive Hindsight Learning
+1. Open the TradeMind dashboard.
+2. Select a supported symbol or load available historical data.
+3. Review market indicators and model-generated signals.
+4. Ask the research assistant to explain a setup or formulate a hypothesis.
+5. Save a meaningful preference or lesson through the memory workflow.
+6. Start a separate interaction and ask a related question to test whether relevant Hindsight context is recalled.
+7. Explore the idea using experiment or paper-trading workflows without placing a real order.
+8. Review the recorded result and limitations.
 
-TradeMind's chat pipeline can learn from explicit user feedback and bring fresh public market headlines into later analysis.
+For a credible memory demonstration, show the actual retain operation, subsequent recall, and returned memory. Do not present a hard-coded response as proof of retrieval.
 
-- **User-taught memory:** messages that clearly express a durable trading preference, correction, or trade lesson are classified by Groq and retained in Hindsight with browser-session tags and instrument metadata. Casual chat is not intentionally retained as a lesson.
-- **Learning in future analysis:** market chat and hypothesis generation can retrieve relevant instrument-tagged Hindsight experiences. The chat response exposes recalled memories so users can see what influenced the answer.
-- **Market context ingestion:** market questions trigger a fetch of public Google News RSS headlines for the selected instrument. Headline, publisher, publication date and source URL are retained in Hindsight and passed to the market-analysis prompt as unverified external context. Results are cached in-process for 15 minutes.
-- **Evidence discipline:** headlines are treated as reported claims, not verified price data. TradeMind should distinguish headlines from broker/market-data values and explain conflicts. RSS availability and publisher coverage can vary.
-- **User control and safety:** only explicit preference/correction/outcome-like replies are candidates for durable learning. This feature does not train model weights; it improves future responses through retrieval-augmented context. Market analysis is informational, not a guarantee or an instruction to place a live order.
+## Responsible use and limitations
 
-## Application-wide theme
+- **Paper trading only:** This project is for simulation and research, not live financial execution.
+- **No investment advice:** AI-generated explanations and model outputs can be wrong.
+- **Historical-data limitations:** Historical or delayed data is not equivalent to a real-time exchange feed.
+- **Model limitations:** ML models can overfit and may fail when market conditions change.
+- **LLM limitations:** Language models can produce incorrect or unsupported explanations. Verify claims against source data.
+- **Memory limitations:** Retrieved memories may be incomplete, outdated, or irrelevant. Review important context before relying on it.
+- **Credential safety:** Keep API keys and OAuth tokens private and outside source control.
+- **Production readiness:** Authentication, per-user memory isolation, monitoring, security hardening, and robust validation are important before multi-user production deployment.
 
-Use the **Day / Night** control in the main header to switch the entire dashboard, including terminal, workflow, portfolio, memory views, modals and chat. The selection is stored in browser local storage as `trademind.app.theme`.
+## Future improvements
+
+- Stronger walk-forward and out-of-sample model evaluation.
+- More comprehensive experiment tracking and reproducibility.
+- Explicit provenance and timestamps for retained memories.
+- User-scoped memory isolation and access controls.
+- Better risk metrics and portfolio-level simulation.
+- Automated tests for market-data, memory, and paper-trading workflows.
+- Improved handling of unavailable providers and offline demo data.
+
+## Contributing
+
+1. Fork the repository.
+2. Create a feature branch.
+3. Make a focused change.
+4. Run relevant checks locally.
+5. Open a pull request describing the change and how it was tested.
+
+## Disclaimer
+
+TradeMind is an educational and experimental software project. It is not a registered investment adviser, broker, or exchange. It does not guarantee the accuracy of market data, predictions, or simulated results. Do your own research and consult a qualified professional before making financial decisions.
+
+## Links
+
+- **Project repository:** https://github.com/naraenks2007-lgtm/TradeMind
+- **Hindsight repository:** https://github.com/vectorize-io/hindsight
+- **Hindsight documentation:** https://hindsight.vectorize.io/
+- **Agent memory overview:** https://vectorize.io/what-is-agent-memory
+
+---
+
+<p align="center">Built as an exploration of AI-assisted trading research, paper trading, and persistent agent memory.</p>
