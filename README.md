@@ -120,7 +120,14 @@ Simulated trading environment with **₹1,00,000 initial capital**:
 
 ---
 
-## Persistent AI Chat Workspace
+## Persistent AI Chat Workspace\n\n### Chat memory and file analysis
+
+The chat accepts explicit save commands such as `save today petrol price is 100`, `store ...`, or `remember ...`. User-stated facts are retained in Hindsight with the saved timestamp in the Asia/Kolkata timezone and indexed in the session-scoped SQLite database so questions such as `what is the petrol price I said?` can return the original value and save time. The local index provides recall continuity if Hindsight is temporarily unavailable; the chat reports that fallback honestly.
+
+The chat attachment control supports text-based PDFs, CSV files, and PNG/JPG/JPEG/WEBP images up to 10 MB. PDF text is extracted with pypdf, CSVs are profiled with pandas, and images are analysed using Groq's vision model. Scanned/image-only PDFs currently need OCR and are reported as unsupported when no selectable text is present.
+
+The chat has a persisted dark/light theme toggle. Simple greetings and general questions no longer require market snapshot construction; market-specific prompts still use the market-data and technical-analysis pipeline.
+
 
 The AI chat includes session-scoped conversation history, automatic titles, new conversations, resume/delete controls, and a 3D animated assistant orb. Conversations and assistant replies are stored in SQLite at `data/conversations.sqlite3` by default; the Groq response, market context, and recalled Hindsight memories are stored with each assistant message.
 
