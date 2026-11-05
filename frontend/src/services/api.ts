@@ -134,7 +134,7 @@ export const api = {
   ): Promise<TradingHypothesis> => {
     const res = await fetch(`${API_BASE}/hypothesis/generate`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { ...api.chatSessionHeaders(), 'Content-Type': 'application/json' },
       body: JSON.stringify({
         instrument_id: instrumentId,
         include_memory: includeMemory,
@@ -167,6 +167,80 @@ export const api = {
       throw new Error(err.detail || 'Chat query failed');
     }
     return res.json();
+  },
+
+  // Persistent conversations (browser-session scoped until account auth is added)
+  getChatSessionId: (): string => {
+    const key = 'trademind.chat.session.v1';
+    let id = localStorage.getItem(key);
+    if (!id) {
+      id = crypto.randomUUID().replace(/-/g, '');
+      localStorage.setItem(key, id);
+    }
+    return id;
+  },
+
+  chatSessionHeaders: (): Record<string, string> => ({
+    'X-TradeMind-Session': api.getChatSessionId()
+  }),
+
+  listConversations: async (): Promise<any[]> => {
+    const res = await fetch(`${API_BASE}/conversations`, { headers: api.chatSessionHeaders() });
+    if (!res.ok) throw new Error('Failed loading conversation history');
+    return res.json();
+  },
+
+  createConversation: async (instrument: string): Promise<any> => {
+    const res = await fetch(`${API_BASE}/conversations`, {
+      method: 'POST',
+      headers: { ...api.chatSessionHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ instrument })
+    });
+    if (!res.ok) throw new Error('Failed creating conversation');
+    return res.json();
+  },
+
+  getConversation: async (id: string): Promise<any> => {
+    const res = await fetch(`${API_BASE}/conversations/${id}`, { headers: api.chatSessionHeaders() });
+    if (!res.ok) throw new Error('Failed loading conversation');
+    return res.json();
+  },
+
+  sendConversationMessage: async (id: string, instrument: string, message: string, includeMemory = true): Promise<any> => {
+    const res = await fetch(`${API_BASE}/conversations/${id}/messages`, {
+      method: 'POST',
+      headers: { ...api.chatSessionHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ instrument_id: instrument, message, include_memory: includeMemory })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || 'Chat query failed');
+    }
+    return res.json();
+  },
+
+  analyseChatFile: async (conversationId: string, file: File, prompt = 'Analyse this file and explain the key findings.'): Promise<any> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('prompt', prompt);
+    const res = await fetch(`${API_BASE}/conversations/${conversationId}/files`, {
+      method: 'POST',
+      headers: api.chatSessionHeaders(),
+      body: formData
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || 'File analysis failed');
+    }
+    return res.json();
+  },
+
+  deleteConversation: async (id: string): Promise<void> => {
+    const res = await fetch(`${API_BASE}/conversations/${id}`, {
+      method: 'DELETE',
+      headers: api.chatSessionHeaders()
+    });
+    if (!res.ok) throw new Error('Failed deleting conversation');
   },
 
   // Paper Trading
@@ -224,7 +298,8 @@ export const api = {
   // Compelling Loop Workflow
   runCompellingLoop: async (instrument: string = "NIFTY_50"): Promise<any> => {
     const res = await fetch(`${API_BASE}/loop/run?instrument=${instrument}`, {
-      method: 'POST'
+      method: 'POST',
+      headers: api.chatSessionHeaders()
     });
     if (!res.ok) {
       const err = await res.json();
@@ -243,7 +318,7 @@ export const api = {
   recallMemory: async (query: string, limit: number = 5): Promise<any> => {
     const res = await fetch(`${API_BASE}/memory/recall`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { ...api.chatSessionHeaders(), 'Content-Type': 'application/json' },
       body: JSON.stringify({ query, limit })
     });
     if (!res.ok) throw new Error('Memory recall failed');

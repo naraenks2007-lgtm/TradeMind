@@ -120,7 +120,24 @@ Simulated trading environment with **₹1,00,000 initial capital**:
 
 ---
 
-## 7. Setup & Installation
+## Persistent AI Chat Workspace
+
+### Chat memory and file analysis
+
+The chat accepts explicit save commands such as `save today petrol price is 100`, `store ...`, or `remember ...`. User-stated facts are retained in Hindsight with the saved timestamp in the Asia/Kolkata timezone and indexed in the session-scoped SQLite database so questions such as `what is the petrol price I said?` can return the original value and save time. The local index provides recall continuity if Hindsight is temporarily unavailable; the chat reports that fallback honestly.
+
+The chat attachment control supports text-based PDFs, CSV files, and PNG/JPG/JPEG/WEBP images up to 10 MB. PDF text is extracted with pypdf, CSVs are profiled with pandas, and images are analysed using Groq's vision model. Scanned/image-only PDFs currently need OCR and are reported as unsupported when no selectable text is present.
+
+The chat has a persisted dark/light theme toggle. Simple greetings and general questions no longer require market snapshot construction; market-specific prompts still use the market-data and technical-analysis pipeline.
+
+
+The AI chat includes session-scoped conversation history, automatic titles, new conversations, resume/delete controls, and a 3D animated assistant orb. Conversations and assistant replies are stored in SQLite at `data/conversations.sqlite3` by default; the Groq response, market context, and recalled Hindsight memories are stored with each assistant message.
+
+For deployments with persistent volumes, set `TRADEMIND_CHAT_DB_PATH` to a file path on the mounted volume (for example, `/var/data/conversations.sqlite3` on a service with a disk mounted at `/var/data`). Without a persistent volume, platforms with ephemeral filesystems may discard SQLite data during redeploys or instance replacement.
+
+The current app has no user login, so the API scopes conversations using a browser-generated `X-TradeMind-Session` identifier stored in local storage. This separates browser sessions but is not account authentication; add authenticated user IDs before exposing multi-user private chat as a production SaaS feature.
+
+## 8. Setup & Installation
 
 ### Prerequisites
 - Python 3.10+
@@ -170,3 +187,25 @@ python backend/main.py
 Open **`http://localhost:8000`** in your browser.
 
 *(For frontend development with Vite hot reload: run `npm run dev` in `frontend/` on port 3000).*
+
+
+## Adaptive Hindsight Learning
+
+TradeMind's chat pipeline can learn from explicit user feedback and bring fresh public market headlines into later analysis.
+
+- **User-taught memory:** messages that clearly express a durable trading preference, correction, or trade lesson are classified by Groq and retained in Hindsight with browser-session tags and instrument metadata. Casual chat is not intentionally retained as a lesson.
+- **Learning in future analysis:** market chat and hypothesis generation can retrieve relevant instrument-tagged Hindsight experiences. The chat response exposes recalled memories so users can see what influenced the answer.
+- **Market context ingestion:** market questions trigger a fetch of public Google News RSS headlines for the selected instrument. Headline, publisher, publication date and source URL are retained in Hindsight and passed to the market-analysis prompt as unverified external context. Results are cached in-process for 15 minutes.
+- **Evidence discipline:** headlines are treated as reported claims, not verified price data. TradeMind should distinguish headlines from broker/market-data values and explain conflicts. RSS availability and publisher coverage can vary.
+- **User control and safety:** only explicit preference/correction/outcome-like replies are candidates for durable learning. This feature does not train model weights; it improves future responses through retrieval-augmented context. Market analysis is informational, not a guarantee or an instruction to place a live order.
+
+## Application-wide theme
+
+Use the **Day / Night** control in the main header to switch the entire dashboard, including terminal, workflow, portfolio, memory views, modals and chat. The selection is stored in browser local storage as `trademind.app.theme`.
+
+
+## Final project report
+
+The current implementation review, challenge-scope mapping, test scenario notes, limitations, and remaining submission checklist are documented in [docs/FINAL_PROJECT_REPORT.md](docs/FINAL_PROJECT_REPORT.md).
+
+When a user enters a value such as `NIFTY current price ₹24,500`, TradeMind treats it as a **user-reported, unverified reference price**. It does not replace the provider market snapshot or become a verified live quote. Live-price status still depends on a valid authorized market-data feed.

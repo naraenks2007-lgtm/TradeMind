@@ -10,7 +10,9 @@ import {
   RefreshCw,
   PlayCircle,
   MessageSquare,
-  Key
+  Key,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { SystemHealth } from '../types';
 
@@ -24,6 +26,8 @@ interface HeaderProps {
   onToggleReplay: () => void;
   onRefresh: () => void;
   loading: boolean;
+  isLightTheme: boolean;
+  onToggleTheme: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -35,7 +39,9 @@ export const Header: React.FC<HeaderProps> = ({
   isReplayActive,
   onToggleReplay,
   onRefresh,
-  loading
+  loading,
+  isLightTheme,
+  onToggleTheme
 }) => {
   const isGroqOnline = health?.groq?.connected;
   const isHindsightOnline = health?.hindsight?.connected;
@@ -67,7 +73,7 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Navigation Tabs */}
         <nav className="flex items-center space-x-1 bg-slate-900/90 p-1 rounded-xl border border-slate-800/80 overflow-x-auto scrollbar-none">
           <button
-            onClick={() => setActiveTab('loop')}
+            onClick={() => setActiveTab('loop')} title="Advanced multi-step market analysis and reflection workflow"
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 shrink-0 ${
               activeTab === 'loop'
                 ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-600/30 font-bold'
@@ -138,10 +144,15 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Action Controls & Health */}
         <div className="flex items-center space-x-2">
+
+          <button onClick={onToggleTheme} title={isLightTheme ? 'Switch entire application to night theme' : 'Switch entire application to day theme'} aria-label={isLightTheme ? 'Switch to dark theme' : 'Switch to light theme'} className="flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs font-medium text-slate-300 transition hover:border-cyan-400/50 hover:text-white">
+            {isLightTheme ? <Moon className="h-3.5 w-3.5" /> : <Sun className="h-3.5 w-3.5" />}
+            <span>{isLightTheme ? 'Night' : 'Day'}</span>
+          </button>
           
           {/* Replay Mode Toggle */}
           <button
-            onClick={onToggleReplay}
+            onClick={onToggleReplay} title="Replay historical market data over time for backtesting and strategy review"
             className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition ${
               isReplayActive
                 ? 'bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-md shadow-amber-500/20'

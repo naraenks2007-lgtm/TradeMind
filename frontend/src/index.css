@@ -25,3 +25,200 @@ code, .font-mono {
 ::-webkit-scrollbar-thumb:hover {
   background: #334155;
 }
+
+
+/* TradeMind conversational workspace */
+.tm-chat-shell {
+  background:
+    radial-gradient(ellipse at 70% -20%, rgba(34, 211, 238, 0.07), transparent 42%),
+    #080d18;
+}
+.tm-chat-sidebar { background: linear-gradient(180deg, #0b1120 0%, #090e19 100%); }
+.tm-orb-scene {
+  position: relative;
+  display: grid;
+  width: 190px;
+  height: 190px;
+  place-items: center;
+  perspective: 800px;
+  transform-style: preserve-3d;
+}
+.tm-orb-core {
+  position: relative;
+  display: grid;
+  width: 112px;
+  height: 112px;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(165, 243, 252, .65);
+  border-radius: 36% 64% 58% 42% / 43% 42% 58% 57%;
+  color: #d9fbff;
+  background:
+    radial-gradient(circle at 34% 25%, rgba(255,255,255,.95), rgba(165,243,252,.65) 8%, transparent 25%),
+    radial-gradient(circle at 65% 72%, rgba(34,211,238,.7), transparent 45%),
+    radial-gradient(circle at 35% 40%, #155e75, #0e7490 42%, #172554 78%);
+  box-shadow: inset -12px -14px 28px rgba(2, 6, 23, .72),
+    inset 8px 8px 24px rgba(207, 250, 254, .28),
+    0 0 28px rgba(34, 211, 238, .35), 0 0 75px rgba(59, 130, 246, .18);
+  animation: tm-orb-float 5s ease-in-out infinite, tm-orb-morph 9s ease-in-out infinite;
+  transform: translateZ(30px);
+}
+.tm-orb-shine {
+  position: absolute;
+  inset: 10px 22px auto;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.22);
+  filter: blur(9px);
+  transform: rotate(-28deg);
+}
+.tm-orb-ring {
+  position: absolute;
+  inset: 16px;
+  border: 1px solid rgba(103, 232, 249, .32);
+  border-radius: 50%;
+  transform: rotateX(68deg) rotateZ(-24deg);
+  box-shadow: 0 0 20px rgba(34, 211, 238, .12);
+}
+.tm-orb-ring-one { animation: tm-orbit 9s linear infinite; }
+.tm-orb-ring-two {
+  inset: 4px 28px;
+  border-color: rgba(129, 140, 248, .34);
+  transform: rotateY(68deg) rotateX(12deg);
+  animation: tm-orbit-reverse 12s linear infinite;
+}
+.tm-orb-particle {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #a5f3fc;
+  box-shadow: 0 0 14px 3px rgba(34,211,238,.65);
+}
+.tm-particle-one { top: 24px; left: 38px; animation: tm-particle-drift 4s ease-in-out infinite; }
+.tm-particle-two { right: 20px; top: 76px; width: 4px; height: 4px; animation: tm-particle-drift 5s ease-in-out -1.5s infinite; }
+.tm-particle-three { bottom: 24px; left: 62px; width: 5px; height: 5px; animation: tm-particle-drift 4.5s ease-in-out -2s infinite; }
+.tm-thinking-dots::after {
+  content: '';
+  display: inline-block;
+  width: 18px;
+  text-align: left;
+  animation: tm-dots 1.4s steps(4, end) infinite;
+}
+@keyframes tm-orb-float {
+  0%, 100% { transform: translateY(0) translateZ(30px) rotate(-5deg); }
+  50% { transform: translateY(-9px) translateZ(30px) rotate(5deg); }
+}
+@keyframes tm-orb-morph {
+  0%, 100% { border-radius: 36% 64% 58% 42% / 43% 42% 58% 57%; }
+  50% { border-radius: 58% 42% 38% 62% / 52% 58% 42% 48%; }
+}
+@keyframes tm-orbit { to { transform: rotateX(68deg) rotateZ(336deg); } }
+@keyframes tm-orbit-reverse { to { transform: rotateY(68deg) rotateX(12deg) rotateZ(-360deg); } }
+@keyframes tm-particle-drift {
+  0%, 100% { transform: translate3d(0,0,0); opacity: .5; }
+  50% { transform: translate3d(8px,-12px,12px); opacity: 1; }
+}
+@keyframes tm-dots { 0% { content: ''; } 25% { content: '.'; } 50% { content: '..'; } 75%, 100% { content: '...'; } }
+@media (max-width: 640px) {
+  .tm-chat-shell { height: calc(100vh - 150px); min-height: 520px; border-radius: 18px; }
+  .tm-chat-sidebar { width: 220px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tm-orb-core, .tm-orb-ring, .tm-orb-particle, .tm-thinking-dots::after {
+    animation: none !important;
+  }
+}
+
+
+/* Chat light/day theme */
+.tm-chat-shell.tm-light-theme {
+  color: #172033;
+  background: #f4f7fb;
+  border-color: #d8e0eb;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, .10);
+}
+.tm-light-theme .tm-chat-sidebar { background: #edf2f8; border-color: #d8e0eb; }
+.tm-light-theme header { background: rgba(255,255,255,.94); border-color: #d8e0eb; }
+.tm-light-theme [class*="bg-slate-900"] { background-color: #f8fafc; }
+.tm-light-theme [class*="bg-slate-800"] { background-color: #e8eef6; }
+.tm-light-theme [class*="border-slate-800"],
+.tm-light-theme [class*="border-slate-700"] { border-color: #d5deea; }
+.tm-light-theme [class*="text-white"] { color: #172033; }
+.tm-light-theme [class*="text-slate-300"],
+.tm-light-theme [class*="text-slate-400"] { color: #475569; }
+.tm-light-theme [class*="text-slate-500"],
+.tm-light-theme [class*="text-slate-600"] { color: #64748b; }
+.tm-light-theme textarea { color: #172033; }
+.tm-light-theme textarea::placeholder { color: #94a3b8; }
+.tm-light-theme .tm-chat-sidebar button:hover { background-color: #e2eaf4; }
+.tm-light-theme .tm-chat-sidebar .text-cyan-100,
+.tm-light-theme .tm-chat-sidebar .text-cyan-200 { color: #0e7490; }
+.tm-light-theme .tm-orb-core { color: #ecfeff; }
+.tm-light-theme [class*="bg-blue-500"][class*="text-blue-50"] { background-color: #dbeafe; color: #1e3a8a; }
+.tm-light-theme [class*="bg-slate-900"] { background-color: #ffffff; }
+.tm-light-theme .tm-chat-shell .text-slate-200 { color: #334155; }
+.tm-light-theme .tm-chat-shell .text-slate-300 { color: #475569; }
+
+
+/* Application-wide day theme. The root class is set by App.tsx and applies to
+   every dashboard tab, modal, header, chart card and the chat workspace. */
+.tm-app { min-height: 100vh; transition: background-color .2s ease, color .2s ease; }
+.tm-app.tm-theme-light {
+  color: #172033 !important;
+  background: #f4f7fb !important;
+}
+.tm-app.tm-theme-light header,
+.tm-app.tm-theme-light footer,
+.tm-app.tm-theme-light [class*="bg-[#0F141F]"],
+.tm-app.tm-theme-light [class*="bg-[#0B0E14]"],
+.tm-app.tm-theme-light [class*="bg-[#080d18]"],
+.tm-app.tm-theme-light [class*="bg-[#0b1120]"],
+.tm-app.tm-theme-light [class*="bg-[#0c1322]"],
+.tm-app.tm-theme-light [class*="bg-[#121824]"],
+.tm-app.tm-theme-light [class*="bg-[#101623]"],
+.tm-app.tm-theme-light [class*="bg-[#141A28]"],
+.tm-app.tm-theme-light [class*="from-[#121824]"] {
+  background-color: #ffffff !important;
+  background-image: none;
+  border-color: #dbe3ee !important;
+}
+.tm-app.tm-theme-light [class*="bg-slate-950"],
+.tm-app.tm-theme-light [class*="bg-slate-900"],
+.tm-app.tm-theme-light [class*="bg-slate-800"],
+.tm-app.tm-theme-light [class*="bg-slate-700"] {
+  background-color: #eaf0f7 !important;
+  border-color: #d5deea !important;
+}
+.tm-app.tm-theme-light [class*="text-white"]:not([class*="bg-blue-"]):not([class*="bg-cyan-"]):not([class*="bg-indigo-"]):not([class*="bg-emerald-"]):not([class*="bg-purple-"]):not([class*="bg-rose-"]):not([class*="bg-gradient"]) {
+  color: #172033 !important;
+}
+.tm-app.tm-theme-light [class*="text-slate-100"],
+.tm-app.tm-theme-light [class*="text-slate-200"],
+.tm-app.tm-theme-light [class*="text-slate-300"] { color: #334155 !important; }
+.tm-app.tm-theme-light [class*="text-slate-400"],
+.tm-app.tm-theme-light [class*="text-slate-500"],
+.tm-app.tm-theme-light [class*="text-slate-600"] { color: #64748b !important; }
+.tm-app.tm-theme-light [class*="border-slate-800"],
+.tm-app.tm-theme-light [class*="border-slate-700"],
+.tm-app.tm-theme-light [class*="border-slate-600"] { border-color: #d5deea !important; }
+.tm-app.tm-theme-light input,
+.tm-app.tm-theme-light textarea,
+.tm-app.tm-theme-light select {
+  color: #172033;
+  background-color: #ffffff;
+  border-color: #cbd5e1;
+}
+.tm-app.tm-theme-light input::placeholder,
+.tm-app.tm-theme-light textarea::placeholder { color: #94a3b8; }
+.tm-app.tm-theme-light ::-webkit-scrollbar-track { background: #edf2f7; }
+.tm-app.tm-theme-light ::-webkit-scrollbar-thumb { background: #cbd5e1; }
+.tm-app.tm-theme-light .tm-chat-shell {
+  color: #172033;
+  background: #f4f7fb;
+  border-color: #d8e0eb;
+}
+.tm-app.tm-theme-light .tm-chat-sidebar { background: #edf2f8; border-color: #d8e0eb; }
+.tm-app.tm-theme-light .tm-chat-shell header { background: rgba(255,255,255,.94); }
+.tm-app.tm-theme-light .tm-chat-shell [class*="bg-slate-900"],
+.tm-app.tm-theme-light .tm-chat-shell [class*="bg-slate-800"] { background-color: #e8eef6 !important; }

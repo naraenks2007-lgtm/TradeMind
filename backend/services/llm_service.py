@@ -52,7 +52,8 @@ class LLMService:
         snapshot: MarketSnapshot,
         include_memory: bool = True,
         user_notes: Optional[str] = None,
-        ml_analysis: Optional[MLAnalysisResult] = None
+        ml_analysis: Optional[MLAnalysisResult] = None,
+        session_id: Optional[str] = None
     ) -> TradingHypothesis:
         if not self.client:
             raise RuntimeError("Groq LLM Client is not initialized. Please set GROQ_API_KEY.")
@@ -71,13 +72,27 @@ class LLMService:
                 f"RSI={indicators.rsi}, MACD={indicators.macd}, Volatility={indicators.volatility_summary}. "
                 f"Past mistakes, lessons learned, and high probability setups."
             )
-            recalled_items = hindsight_service.recall_memories(query=query, limit=4)
+            recalled_items = hindsight_service.recall_memories(query=query, tags=[snapshot.symbol], limit=4)
             if recalled_items:
                 recalled_lessons = [item.content for item in recalled_items]
-                memory_context_str = "RECALLED PREVIOUS EXPERIENCES & LESSONS (FROM HINDSIGHT):\n" + "\n".join(
-                    [f"- {l}" for l in recalled_lessons]
+            if session_id:
+                personal_items = hindsight_service.recall_memories(
+                    query=query,
+                    tags=["trademind_session_" + session_id],
+                    limit=4
                 )
-            else:
+                recalled_lessons.extend(
+                    item.content for item in personal_items
+                    if item.content not in recalled_lessons
+                )
+                recalled_lessons = recalled_lessons[:6]
+
+            if recalled_lessons:
+                memory_context_str = "RECALLED PREVIOUS EXPERIENCES & LESSONS (FROM HINDSIGHT):\n" + "\n".join(
+                    [f"- {lesson}" for lesson in recalled_lessons]
+                )
+            elif not session_id:
+                # Unscoped reflection can include another browser session's private memories.
                 reflection = hindsight_service.reflect_lessons(query=query)
                 if reflection:
                     recalled_lessons = [reflection]
@@ -207,7 +222,9 @@ Please provide reasoning and explanation for this market setup. You MUST respond
         message: str,
         snapshot: MarketSnapshot,
         portfolio: Optional[PortfolioState] = None,
-        include_memory: bool = True
+        include_memory: bool = True,
+        external_context: Optional[str] = None,
+        session_id: Optional[str] = None
     ) -> MarketChatResponse:
         """
         Answers user market queries using Groq LLM integrated with real market data,
@@ -220,8 +237,19 @@ Please provide reasoning and explanation for this market setup. You MUST respond
         recalled_memories = []
         if include_memory:
             query = f"{snapshot.symbol} {message} {ind.trend_summary} RSI={ind.rsi}"
-            items = hindsight_service.recall_memories(query=query, limit=3)
+            items = hindsight_service.recall_memories(query=query, tags=[snapshot.symbol], limit=3)
             recalled_memories = [m.content for m in items]
+            if session_id:
+                personal_items = hindsight_service.recall_memories(
+                    query=query,
+                    tags=["trademind_session_" + session_id],
+                    limit=3
+                )
+                recalled_memories.extend(
+                    item.content for item in personal_items
+                    if item.content not in recalled_memories
+                )
+                recalled_memories = recalled_memories[:6]
 
         portfolio_info = "No active portfolio info provided."
         if portfolio:
@@ -236,7 +264,7 @@ Please provide reasoning and explanation for this market setup. You MUST respond
             "You answer queries regarding market trends, support/resistance, indicator divergence, "
             "paper-trading risk management, and past trade lessons. "
             "Base your answer strictly on the provided real data and Hindsight memories. "
-            "Do not fabricate prices or promise guaranteed profits."
+            "Do not fabricate prices or promise guaranteed profits. When the user challenges a price or prior analysis, inspect the recent conversation context and compare the earlier claim with the CURRENT MARKET DATA source and timestamp supplied below. Acknowledge the exact discrepancy, explain whether it is a stale/historical-vs-live mismatch, instrument mismatch, or data-source issue when evidence supports that explanation. Never simply accept a user-supplied price as verified. If the supplied snapshot cannot verify it, say so and ask for the source/time or a screenshot. Treat durable user preferences and strategy lessons from Hindsight as guidance, but never let a remembered price override current market data."
         )
 
         user_content = f"""
@@ -265,6 +293,11 @@ PORTFOLIO & PAPER TRADING STATE:
 RECALLED HINDSIGHT MEMORIES:
 {chr(10).join([f"- {m}" for m in recalled_memories]) if recalled_memories else "None"}
 
+FRESH PUBLIC NEWS CONTEXT (RSS headlines; reported claims, not independently verified):
+{external_context or "No fresh external news context supplied."}
+
+Use source and publication timestamps where available. Separate headlines from measured market data. If news conflicts with price or indicators, explain the conflict.
+
 Provide a direct, insightful, quantitative answer formatted in clean Markdown.
 Highlight key support/resistance levels, indicator readings, and risk considerations.
 """
@@ -285,6 +318,42 @@ Highlight key support/resistance levels, indicator readings, and risk considerat
             current_price=snapshot.current_price,
             data_source=snapshot.data_source,
             data_timestamp=snapshot.last_timestamp,
+            recalled_memories=recalled_memories
+        )
+
+
+    def general_chat(self, message: str, session_id: Optional[str] = None) -> MarketChatResponse:
+        """General assistant responses that do not require market snapshot construction."""
+        if not self.client:
+            raise RuntimeError("Groq LLM Client is not initialized. Please set GROQ_API_KEY.")
+        recalled_memories = []
+        try:
+            items = hindsight_service.recall_memories(query=message, tags=["trademind_session_" + session_id] if session_id else None, limit=3)
+            recalled_memories = [item.content for item in items]
+        except Exception:
+            pass
+        system_prompt = (
+            "You are TradeMind, a helpful conversational AI assistant. "
+            "Answer greetings, general knowledge, explanations, and everyday questions naturally. "
+            "Do not force every conversation into stock-market analysis. "
+            "If a question needs current information you do not have, say so clearly. "
+            "Never claim a personal fact was saved unless the memory service confirms it."
+        )
+        memory_context = "\n".join(f"- {item}" for item in recalled_memories) or "No relevant memories."
+        response = self.client.chat.completions.create(
+            model=self.model,
+            messages=[
+                {"role": "system", "content": system_prompt + "\nRelevant recalled context:\n" + memory_context},
+                {"role": "user", "content": message}
+            ],
+            temperature=0.4
+        )
+        return MarketChatResponse(
+            answer=response.choices[0].message.content or "I couldn't generate a response. Please try again.",
+            instrument="GENERAL",
+            current_price=0.0,
+            data_source="TradeMind AI",
+            data_timestamp=datetime.now().astimezone().isoformat(),
             recalled_memories=recalled_memories
         )
 
