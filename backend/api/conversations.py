@@ -22,8 +22,8 @@ router = APIRouter(prefix="/api/conversations", tags=["Persistent AI Conversatio
 def _extract_user_reported_price(message: str) -> Optional[float]:
     """Extract a price explicitly supplied by the user; this is not a verified quote."""
     match = re.search(
-        r"\\b(?:nifty(?:\\s*50)?|bank\\s*nifty|sensex|reliance|tcs|infy|infosys)\\b.*?"
-        r"(?:current\\s+price|market\\s+price|price\\s*(?:is|=|:))\\s*₹?\\s*([\\d,]+(?:\\.\\d+)?)",
+        r"\b(?:nifty(?:\s*50)?|bank\s*nifty|sensex|reliance|tcs|infy|infosys)\b.*?"
+        r"(?:current\s+price|market\s+price|price\s*(?:is|=|:))\s*₹?\s*([\d,]+(?:\.\d+)?)",
         message,
         flags=re.IGNORECASE
     )
