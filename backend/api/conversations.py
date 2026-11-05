@@ -107,7 +107,7 @@ def send_message(conversation_id: str, req: ChatMessageRequest, x_trademind_sess
             if is_market_question(req.message) or (
                 previous_assistant and any(term in req.message.lower() for term in (
                     "wrong", "incorrect", "not right", "that price", "your output", "you said",
-                    "actual price", "that's not", "this is not", "it should be"
+                    "actual price", "that's not", "this is not", "it should be", "this output", "output is wrong", "not matching", "does not match", "doesn't match", "you gave", "you provided", "it shows", "i got", "i am getting"
                 ))
             ):
                 snapshot = _get_active_snapshot(req.instrument_id)
