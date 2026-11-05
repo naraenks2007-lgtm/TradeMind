@@ -98,7 +98,8 @@ def send_message(conversation_id: str, req: ChatMessageRequest, x_trademind_sess
                     snapshot=snapshot,
                     portfolio=portfolio,
                     include_memory=req.include_memory,
-                    external_context=news_context
+                    external_context=news_context,
+                    session_id=session_id
                 )
             else:
                 response = llm_service.general_chat(req.message.strip(), session_id=session_id)
