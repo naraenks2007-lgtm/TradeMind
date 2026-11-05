@@ -2,6 +2,7 @@ import os
 import sqlite3
 import uuid
 from datetime import datetime, timezone
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -16,14 +17,22 @@ class ConversationStore:
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._initialize()
 
-    def _connect(self):
+    @contextmanager
+    def _connection(self):
         conn = sqlite3.connect(str(self.db_path), timeout=15)
         conn.row_factory = sqlite3.Row
         conn.execute("PRAGMA foreign_keys = ON")
-        return conn
+        try:
+            yield conn
+            conn.commit()
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            conn.close()
 
     def _initialize(self) -> None:
-        with self._connect() as conn:
+        with self._connection() as conn:
             conn.execute("PRAGMA journal_mode = WAL")
             conn.execute("""
                 CREATE TABLE IF NOT EXISTS conversations (
@@ -62,7 +71,7 @@ class ConversationStore:
         return dict(row)
 
     def list_conversations(self, session_id: str) -> List[Dict[str, Any]]:
-        with self._connect() as conn:
+        with self._connection() as conn:
             rows = conn.execute(
                 "SELECT c.*, (SELECT COUNT(*) FROM conversation_messages m WHERE m.conversation_id=c.id) AS message_count "
                 "FROM conversations c WHERE session_id=? ORDER BY updated_at DESC",
@@ -73,7 +82,7 @@ class ConversationStore:
     def create_conversation(self, session_id: str, instrument: str, title: str = "New conversation") -> Dict[str, Any]:
         now = self._now()
         conversation_id = str(uuid.uuid4())
-        with self._connect() as conn:
+        with self._connection() as conn:
             conn.execute(
                 "INSERT INTO conversations(id, session_id, title, instrument, created_at, updated_at) VALUES(?,?,?,?,?,?)",
                 (conversation_id, session_id, title[:80], instrument, now, now)
@@ -82,7 +91,7 @@ class ConversationStore:
         return dict(row)
 
     def get_conversation(self, session_id: str, conversation_id: str) -> Optional[Dict[str, Any]]:
-        with self._connect() as conn:
+        with self._connection() as conn:
             row = conn.execute(
                 "SELECT * FROM conversations WHERE id=? AND session_id=?",
                 (conversation_id, session_id)
@@ -107,7 +116,7 @@ class ConversationStore:
                         answer: str, response: Any) -> Optional[Dict[str, Any]]:
         import json
         now = self._now()
-        with self._connect() as conn:
+        with self._connection() as conn:
             conversation = conn.execute(
                 "SELECT id, title FROM conversations WHERE id=? AND session_id=?",
                 (conversation_id, session_id)
@@ -138,7 +147,7 @@ class ConversationStore:
         return self.get_conversation(session_id, conversation_id)
 
     def delete_conversation(self, session_id: str, conversation_id: str) -> bool:
-        with self._connect() as conn:
+        with self._connection() as conn:
             cursor = conn.execute("DELETE FROM conversations WHERE id=? AND session_id=?", (conversation_id, session_id))
             return cursor.rowcount > 0
 
