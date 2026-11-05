@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Send, Sparkles, Brain, Plus, MessageSquare, Trash2, PanelLeftClose,
-  PanelLeftOpen, Activity, ArrowUpRight, Command, Loader2
+  PanelLeftOpen, Activity, ArrowUpRight, Command, Loader2, Paperclip, X, Sun, Moon, FileText
 } from 'lucide-react';
 import { api } from '../services/api';
 
@@ -58,6 +58,9 @@ export const AIChatPanel: React.FC<AIChatPanelProps> = ({
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [error, setError] = useState('');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isLightTheme, setIsLightTheme] = useState(() => localStorage.getItem('trademind.chat.theme') === 'light');
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const quickPrompts = [
@@ -95,6 +98,10 @@ export const AIChatPanel: React.FC<AIChatPanelProps> = ({
     })();
     return () => { alive = false; };
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem('trademind.chat.theme', isLightTheme ? 'light' : 'dark');
+  }, [isLightTheme]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
@@ -147,19 +154,45 @@ export const AIChatPanel: React.FC<AIChatPanelProps> = ({
     }
   };
 
+  const ensureConversation = async () => {
+    if (activeId) return activeId;
+    const created = await api.createConversation(currentSymbol);
+    setConversations((prev) => [created, ...prev]);
+    setActiveId(created.id);
+    return created.id as string;
+  };
+
+  const handleAnalyzeFile = async (promptText: string) => {
+    if (!selectedFile || loading) return;
+    setError('');
+    setLoading(true);
+    try {
+      const conversationId = await ensureConversation();
+      const result = await api.analyseChatFile(conversationId, selectedFile, promptText || 'Analyse this file and explain the key findings.');
+      setMessages(result.messages || []);
+      setSelectedFile(null);
+      setInput('');
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      await refreshHistory();
+    } catch (err: any) {
+      setError(err.message || 'File analysis failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSendMessage = async (queryText?: string) => {
     const textToSend = (queryText ?? input).trim();
+    if (selectedFile) {
+      await handleAnalyzeFile(textToSend);
+      return;
+    }
     if (!textToSend || loading) return;
     setError('');
     setInput('');
     setLoading(true);
     try {
-      let conversationId = activeId;
-      if (!conversationId) {
-        const created = await api.createConversation(currentSymbol);
-        conversationId = created.id;
-        setActiveId(conversationId);
-      }
+      const conversationId = await ensureConversation();
       const result = await api.sendConversationMessage(conversationId, currentSymbol, textToSend, true);
       setMessages(result.messages || []);
       await refreshHistory();
@@ -174,7 +207,7 @@ export const AIChatPanel: React.FC<AIChatPanelProps> = ({
   const activeConversation = conversations.find((item) => item.id === activeId);
 
   return (
-    <div className="tm-chat-shell flex h-[min(780px,calc(100vh-190px))] min-h-[560px] overflow-hidden rounded-3xl border border-slate-800/90 bg-[#080d18] shadow-2xl shadow-black/30">
+    <div className={`tm-chat-shell ${isLightTheme ? "tm-light-theme" : ""} flex h-[min(780px,calc(100vh-190px))] min-h-[560px] overflow-hidden rounded-3xl border border-slate-800/90 bg-[#080d18] shadow-2xl shadow-black/30`}>
       {sidebarOpen && (
         <aside className="tm-chat-sidebar flex w-[270px] shrink-0 flex-col border-r border-slate-800/80 bg-[#0b1120]">
           <div className="flex items-center justify-between px-4 py-5">
@@ -239,9 +272,14 @@ export const AIChatPanel: React.FC<AIChatPanelProps> = ({
               <p className="mt-0.5 truncate text-[10px] text-slate-500">Groq market strategist <span className="px-1">·</span> {currentSymbol} <span className="px-1">·</span> {dataSource}</p>
             </div>
           </div>
-          <div className="hidden items-center gap-2 rounded-full border border-slate-700/70 bg-slate-900/80 px-3 py-1.5 sm:flex">
-            <Activity size={12} className="text-emerald-400" />
-            <span className="text-[10px] text-slate-400">Market context active</span>
+          <div className="flex items-center gap-2">
+            <div className="hidden items-center gap-2 rounded-full border border-slate-700/70 bg-slate-900/80 px-3 py-1.5 sm:flex">
+              <Activity size={12} className="text-emerald-400" />
+              <span className="text-[10px] text-slate-400">Market context active</span>
+            </div>
+            <button onClick={() => setIsLightTheme((value) => !value)} className="rounded-xl border border-slate-700 bg-slate-900/80 p-2 text-slate-300 transition hover:border-cyan-300/40 hover:text-white" title={isLightTheme ? 'Switch to dark theme' : 'Switch to light theme'}>
+              {isLightTheme ? <Moon size={16} /> : <Sun size={16} />}
+            </button>
           </div>
         </header>
 
@@ -314,9 +352,21 @@ export const AIChatPanel: React.FC<AIChatPanelProps> = ({
                 {quickPrompts.slice(1, 4).map((prompt) => <button key={prompt} onClick={() => handleSendMessage(prompt)} disabled={loading} className="shrink-0 rounded-full border border-slate-800 px-3 py-1.5 text-[10px] text-slate-400 transition hover:border-cyan-300/30 hover:text-cyan-100">{prompt}</button>)}
               </div>
             )}
+            {selectedFile && (
+              <div className="mb-2 flex items-center gap-2 rounded-xl border border-cyan-300/20 bg-cyan-300/5 px-3 py-2 text-xs text-cyan-100">
+                <FileText size={14} />
+                <span className="min-w-0 flex-1 truncate">{selectedFile.name}</span>
+                <span className="text-[10px] text-slate-500">{(selectedFile.size / 1024 / 1024).toFixed(2)} MB</span>
+                <button type="button" onClick={() => { setSelectedFile(null); if (fileInputRef.current) fileInputRef.current.value = ''; }} className="rounded-md p-1 text-slate-400 hover:bg-slate-800 hover:text-white" title="Remove file"><X size={14} /></button>
+              </div>
+            )}
             <form onSubmit={(event) => { event.preventDefault(); handleSendMessage(); }} className="flex items-end gap-2 rounded-2xl border border-slate-700/80 bg-slate-900/90 p-2 shadow-[0_12px_50px_rgba(0,0,0,0.25)] transition focus-within:border-cyan-300/40">
-              <textarea value={input} onChange={(event) => setInput(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); handleSendMessage(); } }} placeholder={`Ask anything about ${currentSymbol}…`} rows={1} disabled={loading} className="max-h-32 min-h-[42px] flex-1 resize-y bg-transparent px-3 py-3 text-sm text-white outline-none placeholder:text-slate-600 disabled:opacity-50" />
-              <button type="submit" disabled={loading || !input.trim()} className="mb-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-cyan-300 text-slate-950 transition hover:bg-cyan-200 disabled:cursor-not-allowed disabled:opacity-30" title="Send message">
+              <input ref={fileInputRef} type="file" accept=".pdf,.csv,.png,.jpg,.jpeg,.webp,application/pdf,text/csv,image/png,image/jpeg,image/webp" className="hidden" onChange={(event) => { const file = event.target.files?.[0]; if (file) setSelectedFile(file); }} />
+              <button type="button" onClick={() => fileInputRef.current?.click()} disabled={loading} className="mb-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-slate-400 transition hover:bg-slate-800 hover:text-cyan-200 disabled:opacity-40" title="Attach PDF, image, or CSV">
+                <Paperclip size={17} />
+              </button>
+              <textarea value={input} onChange={(event) => setInput(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); handleSendMessage(); } }} placeholder={selectedFile ? 'Add an instruction for the file analysis (optional)…' : `Ask anything about ${currentSymbol}…`} rows={1} disabled={loading} className="max-h-32 min-h-[42px] flex-1 resize-y bg-transparent px-3 py-3 text-sm text-white outline-none placeholder:text-slate-600 disabled:opacity-50" />
+              <button type="submit" disabled={loading || (!input.trim() && !selectedFile)} className="mb-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-cyan-300 text-slate-950 transition hover:bg-cyan-200 disabled:cursor-not-allowed disabled:opacity-30" title={selectedFile ? 'Analyse file' : 'Send message'}>
                 {loading ? <Loader2 size={17} className="animate-spin" /> : <Send size={16} />}
               </button>
             </form>
