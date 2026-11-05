@@ -155,7 +155,7 @@ code, .font-mono {
 .tm-light-theme .tm-chat-sidebar .text-cyan-100,
 .tm-light-theme .tm-chat-sidebar .text-cyan-200 { color: #0e7490; }
 .tm-light-theme .tm-orb-core { color: #ecfeff; }
-.tm-light-theme .tm-chat-shell .bg-blue-500\\/15 { background-color: #dbeafe; color: #1e3a8a; }
-.tm-light-theme .tm-chat-shell .bg-slate-900\\/75 { background-color: #ffffff; }
+.tm-light-theme [class*="bg-blue-500"][class*="text-blue-50"] { background-color: #dbeafe; color: #1e3a8a; }
+.tm-light-theme [class*="bg-slate-900"] { background-color: #ffffff; }
 .tm-light-theme .tm-chat-shell .text-slate-200 { color: #334155; }
 .tm-light-theme .tm-chat-shell .text-slate-300 { color: #475569; }
