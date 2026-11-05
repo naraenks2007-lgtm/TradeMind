@@ -1,3 +1,4 @@
+import os
 import sqlite3
 import uuid
 from datetime import datetime, timezone
@@ -11,7 +12,7 @@ class ConversationStore:
     """Durable, session-scoped conversation storage backed by SQLite."""
 
     def __init__(self) -> None:
-        self.db_path = Path(settings.DATA_DIR) / "conversations.sqlite3"
+        self.db_path = Path(os.getenv("TRADEMIND_CHAT_DB_PATH", str(Path(settings.DATA_DIR) / "conversations.sqlite3")))
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._initialize()
 
