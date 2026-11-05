@@ -169,6 +169,64 @@ export const api = {
     return res.json();
   },
 
+  // Persistent conversations (browser-session scoped until account auth is added)
+  getChatSessionId: (): string => {
+    const key = 'trademind.chat.session.v1';
+    let id = localStorage.getItem(key);
+    if (!id) {
+      id = crypto.randomUUID().replace(/-/g, '');
+      localStorage.setItem(key, id);
+    }
+    return id;
+  },
+
+  chatSessionHeaders: (): Record<string, string> => ({
+    'X-TradeMind-Session': api.getChatSessionId()
+  }),
+
+  listConversations: async (): Promise<any[]> => {
+    const res = await fetch(`${API_BASE}/conversations`, { headers: api.chatSessionHeaders() });
+    if (!res.ok) throw new Error('Failed loading conversation history');
+    return res.json();
+  },
+
+  createConversation: async (instrument: string): Promise<any> => {
+    const res = await fetch(`${API_BASE}/conversations`, {
+      method: 'POST',
+      headers: { ...api.chatSessionHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ instrument })
+    });
+    if (!res.ok) throw new Error('Failed creating conversation');
+    return res.json();
+  },
+
+  getConversation: async (id: string): Promise<any> => {
+    const res = await fetch(`${API_BASE}/conversations/${id}`, { headers: api.chatSessionHeaders() });
+    if (!res.ok) throw new Error('Failed loading conversation');
+    return res.json();
+  },
+
+  sendConversationMessage: async (id: string, instrument: string, message: string, includeMemory = true): Promise<any> => {
+    const res = await fetch(`${API_BASE}/conversations/${id}/messages`, {
+      method: 'POST',
+      headers: { ...api.chatSessionHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ instrument_id: instrument, message, include_memory: includeMemory })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || 'Chat query failed');
+    }
+    return res.json();
+  },
+
+  deleteConversation: async (id: string): Promise<void> => {
+    const res = await fetch(`${API_BASE}/conversations/${id}`, {
+      method: 'DELETE',
+      headers: api.chatSessionHeaders()
+    });
+    if (!res.ok) throw new Error('Failed deleting conversation');
+  },
+
   // Paper Trading
   getPortfolio: async (): Promise<PortfolioState> => {
     const res = await fetch(`${API_BASE}/paper-trading/portfolio`);
