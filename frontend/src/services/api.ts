@@ -134,7 +134,7 @@ export const api = {
   ): Promise<TradingHypothesis> => {
     const res = await fetch(`${API_BASE}/hypothesis/generate`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { ...api.chatSessionHeaders(), 'Content-Type': 'application/json' },
       body: JSON.stringify({
         instrument_id: instrumentId,
         include_memory: includeMemory,
