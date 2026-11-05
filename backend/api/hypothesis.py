@@ -1,4 +1,5 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Header
+from typing import Optional
 import pandas as pd
 
 from backend.models.hypothesis import (
@@ -88,7 +89,7 @@ def _get_active_snapshot(instrument_id: str) -> MarketSnapshot:
     )
 
 @router.post("/generate", response_model=TradingHypothesis)
-def generate_trading_hypothesis(req: HypothesisRequest):
+def generate_trading_hypothesis(req: HypothesisRequest, x_trademind_session: Optional[str] = Header(default=None)):
     """Generates structured institutional trading hypothesis using Groq LLM and Hindsight memory."""
     try:
         snapshot = _get_active_snapshot(req.instrument_id)
@@ -101,7 +102,8 @@ def generate_trading_hypothesis(req: HypothesisRequest):
         hypothesis = llm_service.generate_hypothesis(
             snapshot=snapshot,
             include_memory=req.include_memory,
-            user_notes=req.user_context
+            user_notes=req.user_context,
+            session_id=x_trademind_session
         )
         return hypothesis
     except Exception as e:
