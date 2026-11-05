@@ -141,6 +141,15 @@ def send_message(conversation_id: str, req: ChatMessageRequest, x_trademind_sess
                     f"- {item['title']} (source: {item['source']}; published: {item['published']}; link: {item['link']})"
                     for item in headlines
                 ) or "No fresh public news headlines were available."
+                if user_reported_price is not None:
+                    news_context += (
+                        f"\\n\\nUSER-REPORTED REFERENCE PRICE: ₹{user_reported_price:,.2f}. "
+                        "The user supplied this number in the current message. It is unverified input, "
+                        "not a broker quote and not a substitute for the market snapshot. Explicitly "
+                        "acknowledge it as user-provided, compare it with the snapshot source/timestamp, "
+                        "and state clearly if the available feed cannot verify it. Do not silently overwrite "
+                        "the snapshot or present the supplied value as live market data."
+                    )
                 response = llm_service.chat_analysis(
                     message=contextual_message,
                     snapshot=snapshot,
