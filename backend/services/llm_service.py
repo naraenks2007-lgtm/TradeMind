@@ -88,7 +88,7 @@ class LLMService:
                 recalled_lessons = recalled_lessons[:6]
 
             if recalled_lessons:
-                memory_context_str = "RECALLED PREVIOUS EXPERIENCES & LESSONS (FROM HINDSIGHT):\\n" + "\\n".join(
+                memory_context_str = "RECALLED PREVIOUS EXPERIENCES & LESSONS (FROM HINDSIGHT):\n" + "\n".join(
                     [f"- {lesson}" for lesson in recalled_lessons]
                 )
             elif not session_id:
@@ -96,7 +96,7 @@ class LLMService:
                 reflection = hindsight_service.reflect_lessons(query=query)
                 if reflection:
                     recalled_lessons = [reflection]
-                    memory_context_str = f"HINDSIGHT HISTORICAL REFLECTION:\\n{reflection}"
+                    memory_context_str = f"HINDSIGHT HISTORICAL REFLECTION:\n{reflection}"
 
         # 2. Build ML Context Section
         ml_section = ""
