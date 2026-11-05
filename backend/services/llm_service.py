@@ -288,6 +288,42 @@ Highlight key support/resistance levels, indicator readings, and risk considerat
             recalled_memories=recalled_memories
         )
 
+
+    def general_chat(self, message: str) -> MarketChatResponse:
+        """General assistant responses that do not require market snapshot construction."""
+        if not self.client:
+            raise RuntimeError("Groq LLM Client is not initialized. Please set GROQ_API_KEY.")
+        recalled_memories = []
+        try:
+            items = hindsight_service.recall_memories(query=message, limit=3)
+            recalled_memories = [item.content for item in items]
+        except Exception:
+            pass
+        system_prompt = (
+            "You are TradeMind, a helpful conversational AI assistant. "
+            "Answer greetings, general knowledge, explanations, and everyday questions naturally. "
+            "Do not force every conversation into stock-market analysis. "
+            "If a question needs current information you do not have, say so clearly. "
+            "Never claim a personal fact was saved unless the memory service confirms it."
+        )
+        memory_context = "\\n".join(f"- {item}" for item in recalled_memories) or "No relevant memories."
+        response = self.client.chat.completions.create(
+            model=self.model,
+            messages=[
+                {"role": "system", "content": system_prompt + "\\nRelevant recalled context:\\n" + memory_context},
+                {"role": "user", "content": message}
+            ],
+            temperature=0.4
+        )
+        return MarketChatResponse(
+            answer=response.choices[0].message.content or "I couldn't generate a response. Please try again.",
+            instrument="GENERAL",
+            current_price=0.0,
+            data_source="TradeMind AI",
+            data_timestamp=datetime.now().astimezone().isoformat(),
+            recalled_memories=recalled_memories
+        )
+
     def _build_deterministic_fallback_hypothesis(
         self,
         snapshot: MarketSnapshot,
