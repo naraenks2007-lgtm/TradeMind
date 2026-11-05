@@ -67,7 +67,7 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Navigation Tabs */}
         <nav className="flex items-center space-x-1 bg-slate-900/90 p-1 rounded-xl border border-slate-800/80 overflow-x-auto scrollbar-none">
           <button
-            onClick={() => setActiveTab('loop')}
+            onClick={() => setActiveTab('loop')} title="Advanced multi-step market analysis and reflection workflow"
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 shrink-0 ${
               activeTab === 'loop'
                 ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-600/30 font-bold'
@@ -141,7 +141,7 @@ export const Header: React.FC<HeaderProps> = ({
           
           {/* Replay Mode Toggle */}
           <button
-            onClick={onToggleReplay}
+            onClick={onToggleReplay} title="Replay historical market data over time for backtesting and strategy review"
             className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition ${
               isReplayActive
                 ? 'bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-md shadow-amber-500/20'
