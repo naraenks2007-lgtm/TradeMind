@@ -120,7 +120,9 @@ Simulated trading environment with **₹1,00,000 initial capital**:
 
 ---
 
-## Persistent AI Chat Workspace\n\n### Chat memory and file analysis
+## Persistent AI Chat Workspace
+
+### Chat memory and file analysis
 
 The chat accepts explicit save commands such as `save today petrol price is 100`, `store ...`, or `remember ...`. User-stated facts are retained in Hindsight with the saved timestamp in the Asia/Kolkata timezone and indexed in the session-scoped SQLite database so questions such as `what is the petrol price I said?` can return the original value and save time. The local index provides recall continuity if Hindsight is temporarily unavailable; the chat reports that fallback honestly.
 
