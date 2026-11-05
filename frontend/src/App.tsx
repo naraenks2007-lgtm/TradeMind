@@ -31,6 +31,11 @@ import {
 
 export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'loop' | 'terminal' | 'chat' | 'experiment' | 'portfolio' | 'memory'>('loop');
+  const [isLightTheme, setIsLightTheme] = useState(() => localStorage.getItem('trademind.app.theme') === 'light');
+
+  useEffect(() => {
+    localStorage.setItem('trademind.app.theme', isLightTheme ? 'light' : 'dark');
+  }, [isLightTheme]);
   const [health, setHealth] = useState<SystemHealth | null>(null);
   const [instruments, setInstruments] = useState<InstrumentMetadata[]>([]);
   const [selectedSymbol, setSelectedSymbol] = useState<string>('NIFTY_50');
@@ -164,7 +169,7 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0B0E14] text-slate-100 flex flex-col font-sans">
+    <div className={`tm-app ${isLightTheme ? "tm-theme-light" : "tm-theme-dark"} min-h-screen bg-[#0B0E14] text-slate-100 flex flex-col font-sans`}>
       
       {/* Header */}
       <Header
@@ -180,6 +185,8 @@ export const App: React.FC = () => {
           if (selectedSymbol) loadMarketData(selectedSymbol);
         }}
         loading={loadingMarket}
+        isLightTheme={isLightTheme}
+        onToggleTheme={() => setIsLightTheme((value) => !value)}
       />
 
       {/* Floating Notification */}
@@ -327,6 +334,7 @@ export const App: React.FC = () => {
               currentSymbol={selectedSymbol}
               currentPrice={snapshot?.current_price || 0}
               dataSource={snapshot?.data_source || 'Historical Baseline'}
+              isLightTheme={isLightTheme}
             />
           </div>
         )}
