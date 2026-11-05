@@ -39,7 +39,7 @@ def _save_payload(message: str) -> Optional[str]:
 
 def _memory_query(message: str) -> bool:
     text = message.lower()
-    asks_recall = any(term in text for term in ("what did i say", "what was the", "what is the", "do you remember", "what did i tell", "recall"))
+    asks_recall = any(term in text for term in ("what did i say", "did i say", "i said", "i told you", "what did i tell", "do you remember", "remembered", "saved", "stored", "recall"))
     asks_fact = any(term in text for term in ("price", "cost", "amount", "value", "said", "saved", "stored"))
     return asks_recall and asks_fact
 
@@ -109,7 +109,7 @@ def process_personal_memory(session_id: str, message: str) -> Optional[MarketCha
 
 def process_greeting(message: str) -> Optional[MarketChatResponse]:
     normalized = re.sub(r"[^a-z ]", "", message.lower()).strip()
-    if normalized in {"hi", "hello", "hey", "hii", "heyy", "good morning", "good afternoon", "good evening", "how are you"}:
+    if normalized in {"hi", "hello", "hey", "hii", "heyy", "good morning", "good afternoon", "good evening", "how are you"} or normalized.startswith(("hi ", "hello ", "hey ")):
         return _response(
             "Hey! 👋 I'm TradeMind. I can help with market analysis, explain trading concepts, remember facts you ask me to save, and analyse PDF, image, or CSV files. What would you like to explore?"
         )
