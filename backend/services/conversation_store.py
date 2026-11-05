@@ -61,6 +61,17 @@ class ConversationStore:
             """)
             conn.execute("CREATE INDEX IF NOT EXISTS idx_conversations_session_updated ON conversations(session_id, updated_at DESC)")
             conn.execute("CREATE INDEX IF NOT EXISTS idx_messages_conversation_created ON conversation_messages(conversation_id, created_at)")
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS user_facts (
+                    id TEXT PRIMARY KEY,
+                    session_id TEXT NOT NULL,
+                    fact_text TEXT NOT NULL,
+                    search_text TEXT NOT NULL,
+                    saved_at TEXT NOT NULL,
+                    source TEXT NOT NULL DEFAULT 'chat'
+                )
+            """)
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_user_facts_session_saved ON user_facts(session_id, saved_at DESC)")
 
     @staticmethod
     def _now() -> str:
@@ -145,6 +156,33 @@ class ConversationStore:
                 (title, instrument, self._now(), conversation_id)
             )
         return self.get_conversation(session_id, conversation_id)
+
+    def save_user_fact(self, session_id: str, fact_text: str, search_text: str, saved_at: str) -> Dict[str, Any]:
+        fact_id = str(uuid.uuid4())
+        with self._connection() as conn:
+            conn.execute(
+                "INSERT INTO user_facts(id, session_id, fact_text, search_text, saved_at, source) VALUES(?,?,?,?,?,?)",
+                (fact_id, session_id, fact_text, search_text, saved_at, "chat")
+            )
+        return {"id": fact_id, "fact_text": fact_text, "saved_at": saved_at}
+
+    def find_user_facts(self, session_id: str, query: str, limit: int = 5) -> List[Dict[str, Any]]:
+        import re
+        stop = {"what", "was", "is", "the", "i", "said", "tell", "me", "about", "do", "you", "remember", "price", "please"}
+        terms = {t for t in re.findall(r"[a-z0-9]+", query.lower()) if len(t) > 2 and t not in stop}
+        with self._connection() as conn:
+            rows = conn.execute(
+                "SELECT id, fact_text, search_text, saved_at FROM user_facts WHERE session_id=? ORDER BY saved_at DESC LIMIT 100",
+                (session_id,)
+            ).fetchall()
+        scored = []
+        for row in rows:
+            searchable = set(re.findall(r"[a-z0-9]+", (row["search_text"] + " " + row["fact_text"]).lower()))
+            score = len(terms & searchable)
+            if score:
+                scored.append((score, dict(row)))
+        scored.sort(key=lambda item: (item[0], item[1]["saved_at"]), reverse=True)
+        return [item[1] for item in scored[:limit]]
 
     def delete_conversation(self, session_id: str, conversation_id: str) -> bool:
         with self._connection() as conn:
