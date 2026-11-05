@@ -132,7 +132,7 @@ def analyse_chat_file(
             data_timestamp=__import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat(),
             recalled_memories=[]
         )
-        user_text = f"📎 Analyse file: {file.filename or 'uploaded-file'}\\nRequest: {prompt}"
+        user_text = f"📎 Analyse file: {file.filename or 'uploaded-file'}\nRequest: {prompt}"
         result = conversation_store.append_exchange(
             session_id, conversation_id, instrument, user_text, answer, response
         )
