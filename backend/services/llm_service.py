@@ -208,7 +208,8 @@ Please provide reasoning and explanation for this market setup. You MUST respond
         snapshot: MarketSnapshot,
         portfolio: Optional[PortfolioState] = None,
         include_memory: bool = True,
-        external_context: Optional[str] = None
+        external_context: Optional[str] = None,
+        session_id: Optional[str] = None
     ) -> MarketChatResponse:
         """
         Answers user market queries using Groq LLM integrated with real market data,
@@ -223,6 +224,17 @@ Please provide reasoning and explanation for this market setup. You MUST respond
             query = f"{snapshot.symbol} {message} {ind.trend_summary} RSI={ind.rsi}"
             items = hindsight_service.recall_memories(query=query, tags=[snapshot.symbol], limit=3)
             recalled_memories = [m.content for m in items]
+            if session_id:
+                personal_items = hindsight_service.recall_memories(
+                    query=query,
+                    tags=["trademind_session_" + session_id],
+                    limit=3
+                )
+                recalled_memories.extend(
+                    item.content for item in personal_items
+                    if item.content not in recalled_memories
+                )
+                recalled_memories = recalled_memories[:6]
 
         portfolio_info = "No active portfolio info provided."
         if portfolio:
