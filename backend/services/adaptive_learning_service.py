@@ -71,7 +71,7 @@ class AdaptiveLearningService:
                     f"USER-TAUGHT TRADING {category.upper()} (instrument context: {instrument}): {memory}. "
                     f"Source: explicit user reply. Recorded at {now}."
                 ),
-                tags=[instrument, "user_taught", "trading_" + category, SESSION_TAG_PREFIX + session_id],
+                tags=["user_taught", "trading_" + category, SESSION_TAG_PREFIX + session_id],
                 metadata={"type": "user_feedback", "category": category, "instrument": instrument,
                           "session_id": session_id, "recorded_at": now}
             )
