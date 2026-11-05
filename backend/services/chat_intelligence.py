@@ -56,7 +56,7 @@ def process_personal_memory(session_id: str, message: str) -> Optional[MarketCha
     fact = _save_payload(message)
     if fact:
         now = datetime.now(IST).isoformat()
-        parts = re.split(r"\\s*(?:is|was|=|:)\\s*", fact, maxsplit=1, flags=re.IGNORECASE)
+        parts = re.split(r"\s*(?:is|was|=|:)\s*", fact, maxsplit=1, flags=re.IGNORECASE)
         search_text = parts[0] if len(parts) > 1 else fact
         saved = conversation_store.save_user_fact(session_id, fact, search_text, now)
         hindsight_result = hindsight_service.retain_memory(
