@@ -290,6 +290,7 @@ For a credible memory demonstration, show the actual retain operation, subsequen
 - **Credential safety:** Keep API keys and OAuth tokens private and outside source control.
 - **Production readiness:** Authentication, per-user memory isolation, monitoring, security hardening, and robust validation are important before multi-user production deployment.
 
+<<<<<<< HEAD
 ## Future improvements
 
 - Stronger walk-forward and out-of-sample model evaluation.
@@ -322,3 +323,13 @@ TradeMind is an educational and experimental software project. It is not a regis
 ---
 
 <p align="center">Built as an exploration of AI-assisted trading research, paper trading, and persistent agent memory.</p>
+=======
+Use the **Day / Night** control in the main header to switch the entire dashboard, including terminal, workflow, portfolio, memory views, modals and chat. The selection is stored in browser local storage as `trademind.app.theme`.
+
+
+## Final project report
+
+The current implementation review, challenge-scope mapping, test scenario notes, limitations, and remaining submission checklist are documented in [docs/FINAL_PROJECT_REPORT.md](docs/FINAL_PROJECT_REPORT.md).
+
+When a user enters a value such as `NIFTY current price ₹24,500`, TradeMind treats it as a **user-reported, unverified reference price**. It does not replace the provider market snapshot or become a verified live quote. Live-price status still depends on a valid authorized market-data feed.
+>>>>>>> 322e5d931ac874d571915dca2e5f975dac4f4f11

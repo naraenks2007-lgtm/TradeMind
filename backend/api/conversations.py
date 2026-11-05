@@ -17,6 +17,25 @@ from backend.services.adaptive_learning_service import adaptive_learning_service
 router = APIRouter(prefix="/api/conversations", tags=["Persistent AI Conversations"])
 
 
+
+
+def _extract_user_reported_price(message: str) -> Optional[float]:
+    """Extract a price explicitly supplied by the user; this is not a verified quote."""
+    match = re.search(
+        r"\b(?:nifty(?:\s*50)?|bank\s*nifty|sensex|reliance|tcs|infy|infosys)\b.*?"
+        r"(?:current\s+price|market\s+price|price\s*(?:is|=|:))\s*₹?\s*([\d,]+(?:\.\d+)?)",
+        message,
+        flags=re.IGNORECASE
+    )
+    if not match:
+        return None
+    try:
+        value = float(match.group(1).replace(",", ""))
+        return value if value > 0 else None
+    except ValueError:
+        return None
+
+
 def _session_id(value: Optional[str]) -> str:
     if not value or not re.fullmatch(r"[A-Za-z0-9_-]{16,80}", value):
         raise HTTPException(status_code=400, detail="A valid X-TradeMind-Session header is required.")
@@ -96,10 +115,15 @@ def send_message(conversation_id: str, req: ChatMessageRequest, x_trademind_sess
     )
 
     try:
-        learned_memory = adaptive_learning_service.learn_from_user_reply(
-            req.message.strip(), session_id, req.instrument_id,
-            previous_assistant_message=previous_assistant
-        )
+        user_reported_price = _extract_user_reported_price(req.message.strip())
+        # A standalone quote supplied by the user is input context, not a durable lesson.
+        # Only send it to adaptive learning when it is clearly a reply to an earlier assistant claim.
+        learned_memory = None
+        if not (user_reported_price is not None and not previous_assistant):
+            learned_memory = adaptive_learning_service.learn_from_user_reply(
+                req.message.strip(), session_id, req.instrument_id,
+                previous_assistant_message=previous_assistant
+            )
         response = process_personal_memory(session_id, req.message.strip())
         if response is None:
             response = process_greeting(req.message.strip())
@@ -117,6 +141,15 @@ def send_message(conversation_id: str, req: ChatMessageRequest, x_trademind_sess
                     f"- {item['title']} (source: {item['source']}; published: {item['published']}; link: {item['link']})"
                     for item in headlines
                 ) or "No fresh public news headlines were available."
+                if user_reported_price is not None:
+                    news_context += (
+                        f"\\n\\nUSER-REPORTED REFERENCE PRICE: ₹{user_reported_price:,.2f}. "
+                        "The user supplied this number in the current message. It is unverified input, "
+                        "not a broker quote and not a substitute for the market snapshot. Explicitly "
+                        "acknowledge it as user-provided, compare it with the snapshot source/timestamp, "
+                        "and state clearly if the available feed cannot verify it. Do not silently overwrite "
+                        "the snapshot or present the supplied value as live market data."
+                    )
                 response = llm_service.chat_analysis(
                     message=contextual_message,
                     snapshot=snapshot,
