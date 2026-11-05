@@ -288,7 +288,7 @@ export const AIChatPanel: React.FC<AIChatPanelProps> = ({
               </div>
               <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.32em] text-cyan-200/70">Your market intelligence copilot</p>
               <h3 className="max-w-lg text-2xl font-semibold tracking-tight text-white sm:text-3xl">Think deeper about the market.</h3>
-              <p className="mt-3 max-w-md text-sm leading-6 text-slate-400">Ask TradeMind to interpret market structure, explain indicators, review trade decisions, and connect today’s setup with lessons from your history.</p>
+              <p className="mt-3 max-w-md text-sm leading-6 text-slate-400">Ask TradeMind to interpret market structure, explain indicators, and review trade decisions. Tell it what worked, what failed, or how you prefer to trade; it can retain those lessons in Hindsight and apply them in later analysis.</p>
               <div className="mt-8 grid w-full max-w-xl grid-cols-1 gap-2 sm:grid-cols-2">
                 {quickPrompts.slice(0, 4).map((prompt) => (
                   <button key={prompt} onClick={() => handleSendMessage(prompt)} className="group flex items-center justify-between rounded-xl border border-slate-800 bg-slate-900/50 px-4 py-3 text-left text-xs text-slate-300 transition hover:border-cyan-300/30 hover:bg-cyan-300/5 hover:text-white">
