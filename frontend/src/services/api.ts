@@ -219,6 +219,22 @@ export const api = {
     return res.json();
   },
 
+  analyseChatFile: async (conversationId: string, file: File, prompt = 'Analyse this file and explain the key findings.'): Promise<any> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('prompt', prompt);
+    const res = await fetch(`${API_BASE}/conversations/${conversationId}/files`, {
+      method: 'POST',
+      headers: api.chatSessionHeaders(),
+      body: formData
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || 'File analysis failed');
+    }
+    return res.json();
+  },
+
   deleteConversation: async (id: string): Promise<void> => {
     const res = await fetch(`${API_BASE}/conversations/${id}`, {
       method: 'DELETE',
