@@ -120,7 +120,15 @@ Simulated trading environment with **₹1,00,000 initial capital**:
 
 ---
 
-## 7. Setup & Installation
+## Persistent AI Chat Workspace
+
+The AI chat includes session-scoped conversation history, automatic titles, new conversations, resume/delete controls, and a 3D animated assistant orb. Conversations and assistant replies are stored in SQLite at `data/conversations.sqlite3` by default; the Groq response, market context, and recalled Hindsight memories are stored with each assistant message.
+
+For deployments with persistent volumes, set `TRADEMIND_CHAT_DB_PATH` to a file path on the mounted volume (for example, `/var/data/conversations.sqlite3` on a service with a disk mounted at `/var/data`). Without a persistent volume, platforms with ephemeral filesystems may discard SQLite data during redeploys or instance replacement.
+
+The current app has no user login, so the API scopes conversations using a browser-generated `X-TradeMind-Session` identifier stored in local storage. This separates browser sessions but is not account authentication; add authenticated user IDs before exposing multi-user private chat as a production SaaS feature.
+
+## 8. Setup & Installation
 
 ### Prerequisites
 - Python 3.10+
