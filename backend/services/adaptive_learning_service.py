@@ -29,7 +29,7 @@ class AdaptiveLearningService:
             "i prefer", "i usually", "i always", "i never", "i avoid", "my risk",
             "my strategy", "my trading", "my mistake", "i lost", "i won", "trade closed",
             "trade hit", "stop loss hit", "target hit", "that analysis was", "you were wrong",
-            "you were right", "next time", "please remember", "from now on", "i want you to",
+            "you were right", "that was wrong", "that was incorrect", "this worked", "this failed", "it worked", "it failed", "should have", "my preferred", "risk appetite", "risk tolerance", "i trade", "i usually enter", "i usually exit", "next time", "from now on", "i want you to",
             "i don't want", "i do not want", "because i entered", "because i exited"
         )
         return len(message.strip()) >= 18 and any(term in text for term in signals)
