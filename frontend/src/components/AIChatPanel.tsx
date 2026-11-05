@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Send, Sparkles, Brain, Plus, MessageSquare, Trash2, PanelLeftClose,
-  PanelLeftOpen, Activity, ArrowUpRight, Command, Loader2, Paperclip, X, Sun, Moon, FileText
+  PanelLeftOpen, Activity, ArrowUpRight, Command, Loader2, Paperclip, X, FileText
 } from 'lucide-react';
 import { api } from '../services/api';
 
@@ -9,6 +9,7 @@ interface AIChatPanelProps {
   currentSymbol: string;
   currentPrice: number;
   dataSource: string;
+  isLightTheme: boolean;
 }
 
 interface Conversation {
@@ -48,7 +49,8 @@ const formatDate = (value: string) => {
 export const AIChatPanel: React.FC<AIChatPanelProps> = ({
   currentSymbol,
   currentPrice,
-  dataSource
+  dataSource,
+  isLightTheme
 }) => {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -59,7 +61,6 @@ export const AIChatPanel: React.FC<AIChatPanelProps> = ({
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [error, setError] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [isLightTheme, setIsLightTheme] = useState(() => localStorage.getItem('trademind.chat.theme') === 'light');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -98,10 +99,6 @@ export const AIChatPanel: React.FC<AIChatPanelProps> = ({
     })();
     return () => { alive = false; };
   }, []);
-
-  useEffect(() => {
-    localStorage.setItem('trademind.chat.theme', isLightTheme ? 'light' : 'dark');
-  }, [isLightTheme]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
@@ -277,9 +274,6 @@ export const AIChatPanel: React.FC<AIChatPanelProps> = ({
               <Activity size={12} className="text-emerald-400" />
               <span className="text-[10px] text-slate-400">Market context active</span>
             </div>
-            <button onClick={() => setIsLightTheme((value) => !value)} className="rounded-xl border border-slate-700 bg-slate-900/80 p-2 text-slate-300 transition hover:border-cyan-300/40 hover:text-white" title={isLightTheme ? 'Switch to dark theme' : 'Switch to light theme'}>
-              {isLightTheme ? <Moon size={16} /> : <Sun size={16} />}
-            </button>
           </div>
         </header>
 
